@@ -32,7 +32,7 @@ const AuthProvider = ({ children }) => {
             localStorage.setItem("refreshToken", res.refreshToken);
             navigate("/today");
         } catch (error) {
-            throw error; // Re-throw the error to be handled by the caller
+            throw error; // Re-throw the error to be handled by the call
         }
     };
 
