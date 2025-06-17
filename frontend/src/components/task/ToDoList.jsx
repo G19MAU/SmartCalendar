@@ -16,7 +16,7 @@ import {
     Button,
     Accordion,
     AccordionSummary,
-    AccordionDetails
+    AccordionDetails, Divider
 } from "@mui/material";
 import {
     ExpandMore as ExpandMoreIcon,
@@ -31,6 +31,7 @@ import { alpha } from "@mui/material/styles";
 import { useTodoContext } from "../../context/TodoContext";
 import { useCalendarContext } from "../../context/CalendarContext";
 import { useCategoryContext } from "../../context/CategoryContext";
+import CreateCategoryDialog from "../CreateCategoryDialog";
 import AddTask from "./AddTask";
 import ConfirmationDialog from "../ConfirmationDialog";
 import AddActivity from "../calendar/AddActivity";
@@ -60,7 +61,12 @@ export default function ToDoList() {
         dialogMode: calendarDialogMode,
     } = useCalendarContext();
 
-    const { categories } = useCategoryContext();
+    const {
+        categories,
+        useCategoryDialog
+    } = useCategoryContext();
+
+    const { open, handleOpen, handleClose, handleCreate } = useCategoryDialog();
 
     const [selectedTaskId, setSelectedTaskId] = useState(null);
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -187,6 +193,9 @@ export default function ToDoList() {
                             >
                                 <em>Rensa</em>
                             </MenuItem>
+
+                            <Divider />
+
                             {categories.map((cat) => (
                                 <MenuItem
                                     key={cat.id}
@@ -195,9 +204,27 @@ export default function ToDoList() {
                                         setCatMenuAnchor(null);
                                     }}
                                 >
-                                    {cat.name}
+                                    <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+                                        <Box
+                                            sx={{
+                                                width: 12,
+                                                height: 12,
+                                                bgcolor: cat.color,
+                                                borderRadius: "50%",
+                                            }}
+                                        />
+                                        {cat.name}
+                                    </Box>
                                 </MenuItem>
                             ))}
+
+                            <Divider />
+
+                            <MenuItem onClick={handleOpen}>
+                                <Box sx={{textAlign: "center", width: "100%" }}>
+                                    Skapa ny kategori
+                                </Box>
+                            </MenuItem>
                         </Menu>
                         <Box sx={{ position: "relative" }}>
                             <Tooltip title="Välj datum" arrow>
@@ -564,6 +591,12 @@ export default function ToDoList() {
                     </Box>
                 </AccordionDetails>
             </Accordion>
+
+            <CreateCategoryDialog
+                open={open}
+                onClose={handleClose}
+                onCreate={handleCreate}
+            />
         </Box>
     );
 }

@@ -50,9 +50,8 @@ public class ActivityService {
         User user = userRepository.findByUsername(currentUser.getUsername())
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        List<ActivityDTO> activities = activityRepository.findAll()
+        List<ActivityDTO> activities = activityRepository.findByUser(user)
                 .stream()
-                .filter(activity -> activity.getUser().getId().equals(user.getId()))
                 .map(activity -> new ActivityDTO(activity, checkForOverlaps(activity, user, activity.getId())))
                 .collect(Collectors.toList());
 

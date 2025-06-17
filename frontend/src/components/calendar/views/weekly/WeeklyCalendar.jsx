@@ -9,7 +9,8 @@ import {
 } from '@mui/material';
 import {
     ArrowBack as ArrowBackIcon,
-    ArrowForward as ArrowForwardIcon
+    ArrowForward as ArrowForwardIcon,
+    CalendarToday as CalendarTodayIcon
 } from '@mui/icons-material';
 
 import WeeklyGrid from './WeeklyGrid';
@@ -31,6 +32,10 @@ function WeeklyCalendar() {
         startOfWeek,
         setStartOfWeek
     } = useCalendarContext();
+
+    // Datepicker state
+    const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));
+    const inputRef = useRef(null);
 
     const [timeColWidth, setTimeColWidth] = useState(0);
     const [dayColWidth, setDayColWidth]   = useState(0);
@@ -93,7 +98,6 @@ function WeeklyCalendar() {
         }
     }, [targetDate, setStartOfWeek]);
 
-
     return(
         <Box
             sx={{
@@ -107,7 +111,9 @@ function WeeklyCalendar() {
                 sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    mb: 1
+                    mb: 1,
+                    mt: 1,
+                    px: 1,
                 }}
             >
                 {/* Button changing visible week to previous */}
@@ -116,9 +122,55 @@ function WeeklyCalendar() {
                 </Button>
 
                 {/* Headtitle for calender */}
-                <Typography variant="h6">
-                    Vecka {startOfWeek.week()} - {startOfWeek.year()} {/* Shows year based on week */}
-                </Typography>
+                {/* Date button + hidden input native date‑picker */}
+                <Box sx={{ position: "relative", display: "inline-block" }}>
+                    <Button
+                        variant="text"
+                        size="small"
+                        startIcon={<CalendarTodayIcon />}
+                        sx={{
+                            border: 1,
+                            textTransform: "none",
+                            px: 1,
+                            fontSize: "1rem"
+                        }}
+                        onClick={() => {
+                            if (inputRef.current?.showPicker) {
+                                inputRef.current.showPicker();
+                            } else {
+                                inputRef.current.click();
+                            }
+                        }}
+                    >
+                        Vecka {startOfWeek.week()} - {startOfWeek.year()}
+                    </Button>
+
+                    <input
+                        ref={inputRef}
+                        type="date"
+                        value={date}
+                        onChange={e => {
+                            const value = e.target.value;
+                            if (!value) {
+                             const today = dayjs().startOf("isoWeek");
+                             setDate(dayjs().format("YYYY-MM-DD"));
+                             setStartOfWeek(today);
+                            } else {
+                                setDate(value);
+                                setStartOfWeek(dayjs(e.target.value).startOf("isoWeek"))
+                            }
+                        }}
+                        style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: "100%",
+                            opacity: 0,
+                            pointerEvents: "none"
+                        }}
+                    />
+                </Box>
 
                 {/* Button changing visible week to next */}
                 <Button variant ="contained" size="small" onClick={handleNextWeek}>

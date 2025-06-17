@@ -156,8 +156,6 @@ public class AuthService {
         userRepository.save(user);
     }
 
-
-    //TODO Change the return User-class to a DTO class response
     @Transactional
     public UserDTO registerUser(RegisterRequest request) {
         userRepository.findByUsername(request.getUsername())

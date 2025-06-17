@@ -43,11 +43,32 @@ export function useCategories() {
         return newCat;
     }, []);
 
+    // Shared category dialog logic
+    const useCategoryDialog = () => {
+        const [open, setOpen] = useState(false);
+
+        const handleOpen = useCallback(() => setOpen(true), []);
+        const handleClose = useCallback(() => setOpen(false), []);
+
+        const handleCreate = useCallback(
+            async ({ name, color }) => {
+                const newCat = await createCategory(name, color);
+                toggleCategory?.(newCat.id);
+                setOpen(false);
+                return newCat;
+            },
+            [createCategory, toggleCategory]
+        );
+
+        return { open, handleOpen, handleClose, handleCreate };
+    };
+
     return {
         categories,
         selectedCategories,
         toggleCategory,
         resetFilter,
         createCategory,
+        useCategoryDialog
     };
 }
