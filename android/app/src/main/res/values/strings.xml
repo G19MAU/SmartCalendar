@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">SmartCalendar</string>
+    <string name="user_name">Användarnamn*</string>
+</resources>
