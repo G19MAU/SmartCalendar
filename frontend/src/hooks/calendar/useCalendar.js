@@ -149,17 +149,18 @@ export function useCalendar() {
     async (formData, mode) => {
 
       const path   = mode === "edit"
-        ? `activities/edit/${formData.id}`
-        : "activities/create";
+          ? `activities/edit/${formData.id}`
+          : "activities/create";
       const method = mode === "edit" ? "PUT" : "POST";
       const saved  = await fetchData(path, method, formData);
+      const savedActivity = saved?.body || saved;
 
       setActivities(prev =>
-        mode === "edit"
-          ? prev.map(a => (a.id === saved.id ? saved : a))
-          : [...prev, saved]
+          mode === "edit"
+              ? prev.map(a => (a.id === savedActivity.id ? savedActivity : a))
+              : [...prev, savedActivity]
       );
-      return saved;
+      return savedActivity;
     },
     []
   );
@@ -171,12 +172,13 @@ export function useCalendar() {
   }, [handleCloseDialog]);
 
   const convertTaskToActivity = useCallback(
-    async (formData, taskID) => {
-      const path = `tasks/convert/${taskID}`;
-      const saved = await fetchData(path, "POST", formData);
-      setActivities(prev => [...prev, saved]);
-      return saved;
-    },
+      async (formData, taskID) => {
+        const path = `tasks/convert/${taskID}`;
+        const saved = await fetchData(path, "POST", formData);
+        const savedActivity = saved?.body || saved;
+        setActivities(prev => [...prev, savedActivity]);
+        return savedActivity;
+      },
     []
   );
 
