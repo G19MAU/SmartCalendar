@@ -8,7 +8,7 @@ const WeeklyActivityBox = ({ filteredActivities, onClick }) => {
     const {
         categories,
     } = useCalendarContext();
-    {/* */}
+
     if (!filteredActivities || filteredActivities.length === 0 ) return null;
 
 
@@ -40,19 +40,29 @@ const WeeklyActivityBox = ({ filteredActivities, onClick }) => {
                 return (
                     <Box key={i}
                          onClick={onClick}
+                         draggable
+                         onDragStart={(e) => {
+                             e.dataTransfer.effectAllowed = "move";
+                             const payload = JSON.stringify({
+                                 id: activity.id,
+                                 startTime: activity.startTime,
+                                 endTime: activity.endTime,
+                             });
+                             e.dataTransfer.setData("text/plain", payload);
+                         }}
                          sx={{
-                            position:"absolute", 
-                            top:`${startTime}px`,
-                            height: `${duration}px`,
-                            pl:0.5,
-                            borderLeft: "5px solid",
-                            borderLeftColor: tempBackgroundColor,
-                            backgroundColor,
+                             position:"absolute",
+                             top:`${startTime}px`,
+                             height: `${duration}px`,
+                             pl:0.5,
+                             borderLeft: "5px solid",
+                             borderLeftColor: tempBackgroundColor,
+                             backgroundColor,
                              color: "black",
-                            boxShadow: 1,
-                            width:"80%",
-                            cursor:"pointer",
-                            zIndex:1,
+                             boxShadow: 1,
+                             width:"80%",
+                             cursor:"pointer",
+                             zIndex:1,
                              transition: "background-color 0.3s ease",
                              "&:hover": {
                                  backgroundColor: alpha(tempBackgroundColor, 0.6), // 60% opacity
