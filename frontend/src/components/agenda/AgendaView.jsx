@@ -5,6 +5,7 @@ import {useCalendarContext} from "../../context/CalendarContext";
 import AddActivity from "../calendar/AddActivity";
 import ActivityDialog from "../calendar/ActivityDialog";
 import ConfirmationDialog from "../ConfirmationDialog";
+import IntroDialog from "../../components/IntroDialog";
 import dayjs from "dayjs";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -52,7 +53,19 @@ function AgendaView() {
     const nextDay = currentDay.add(1, "day");
     const nextDate = nextDay.format("DD/MM");
 
+    const [showIntroDialog, setShowIntroDialog] = useState(false);
 
+    useEffect(() => {
+        const seen = localStorage.getItem("introSeen");
+        if (seen !== "true") {
+            setShowIntroDialog(true);
+        }
+    }, []);
+
+    const handleIntroClose = () => {
+        localStorage.setItem("introSeen", "true");
+        setShowIntroDialog(false);
+    };
 
     const handlePrevDay = () => {
         setStartOfWeek(prev => dayjs(prev).subtract(1, 'day'));
@@ -79,6 +92,7 @@ function AgendaView() {
 
     return(
         <Box>
+            <IntroDialog open={showIntroDialog} onClose={handleIntroClose} />
             <Box
                 sx={{
                     display: 'flex',
