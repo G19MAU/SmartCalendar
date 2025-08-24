@@ -1,20 +1,25 @@
 package se.umu.calu0217.smartcalendar
 
+import android.content.Intent
 import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import se.umu.calu0217.smartcalendar.data.repository.AuthRepository
+import se.umu.calu0217.smartcalendar.ui.screens.HomeScreen
 
-class HomeActivity : AppCompatActivity() {
+class HomeActivity : ComponentActivity() {
+    private val repository = AuthRepository()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_home)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        setContent {
+            HomeScreen {
+                repository.logout()
+                startActivity(Intent(this@HomeActivity, MainActivity::class.java))
+                finish()
+            }
         }
     }
 }
