@@ -2,42 +2,36 @@ package se.umu.calu0217.smartcalendar
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import se.umu.calu0217.smartcalendar.databinding.ActivityMainBinding
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import se.umu.calu0217.smartcalendar.data.repository.AuthRepository
+import se.umu.calu0217.smartcalendar.ui.screens.LoginScreen
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
 
-    private lateinit var binding : ActivityMainBinding
+    private lateinit var repository: AuthRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        repository = AuthRepository(this)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        binding.loginButton.setOnClickListener {
-            val username = binding.userName.text.toString()
-            val password = binding.password.text.toString()
-
-            if (username == "Carl" && password == "Carl123") {
-                val intent = Intent(this, HomeActivity::class.java)
-                startActivity(intent)
+        lifecycleScope.launch {
+            val token = repository.token.first()
+            if (token != null) {
+                startActivity(Intent(this@MainActivity, HomeActivity::class.java))
+                finish()
             } else {
-                Toast.makeText(this, "Invalid username or password", Toast.LENGTH_SHORT).show()
+                setContent {
+                    LoginScreen(repository) {
+                        startActivity(Intent(this@MainActivity, HomeActivity::class.java))
+                        finish()
+                    }
+                }
             }
-        }
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
         }
     }
 }
+
