@@ -23,6 +23,10 @@ class TasksViewModel(private val repository: TasksRepository) : ViewModel() {
         viewModelScope.launch { repository.refresh() }
     }
 
+    fun toggleComplete(id: Int) {
+        viewModelScope.launch { repository.toggleComplete(id) }
+    }
+
     companion object {
         fun provideFactory(context: Context): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
