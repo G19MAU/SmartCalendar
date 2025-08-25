@@ -41,23 +41,21 @@ fun CalendarScreen() {
                 .fillMaxWidth()
                 .height(300.dp)
                 .pointerInput(Unit) {
-                    detectTransformGestures(
-                        onGesture = { _, _, zoom, _ ->
+                    while (true) {
+                        detectTransformGestures { _, _, zoom, _ ->
                             scale = (scale * zoom).coerceIn(0.5f, 2f)
-                        },
-                        onGestureEnd = {
-                            level = when {
-                                scale < 0.8f -> ZoomLevel.MONTH
-                                scale < 1.5f -> ZoomLevel.WEEK
-                                else -> ZoomLevel.DAY
-                            }
-                            scale = when (level) {
-                                ZoomLevel.MONTH -> 0.8f
-                                ZoomLevel.WEEK -> 1f
-                                ZoomLevel.DAY -> 1.5f
-                            }
                         }
-                    )
+                        level = when {
+                            scale < 0.8f -> ZoomLevel.MONTH
+                            scale < 1.5f -> ZoomLevel.WEEK
+                            else -> ZoomLevel.DAY
+                        }
+                        scale = when (level) {
+                            ZoomLevel.MONTH -> 0.8f
+                            ZoomLevel.WEEK -> 1f
+                            ZoomLevel.DAY -> 1.5f
+                        }
+                    }
                 }
                 .padding(4.dp)
         ) {
