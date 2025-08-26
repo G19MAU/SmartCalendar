@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import se.umu.calu0217.smartcalendar.data.repository.AuthRepository
+import se.umu.calu0217.smartcalendar.data.repository.UserRepository
 import se.umu.calu0217.smartcalendar.ui.components.BottomNavBar
 import se.umu.calu0217.smartcalendar.ui.screens.AgendaScreen
 import se.umu.calu0217.smartcalendar.ui.screens.CalendarScreen
@@ -23,14 +24,15 @@ import se.umu.calu0217.smartcalendar.ui.screens.LoginScreen
 @Composable
 fun SmartCalendarApp() {
     val context = LocalContext.current
-    val repository = remember { AuthRepository(context) }
-    val token by repository.token.collectAsState(initial = null)
+    val authRepository = remember { AuthRepository(context) }
+    val userRepository = remember { UserRepository(context) }
+    val token by authRepository.token.collectAsState(initial = null)
     val navController = rememberNavController()
 
     if (token == null) {
         NavHost(navController = navController, startDestination = "login") {
             composable("login") {
-                LoginScreen(repository) {
+                LoginScreen(authRepository) {
                     navController.navigate("agenda") {
                         popUpTo("login") { inclusive = true }
                     }
@@ -47,10 +49,16 @@ fun SmartCalendarApp() {
                 composable("agenda") { AgendaScreen() }
                 composable("calendar") { CalendarScreen() }
                 composable("todos") { TodoScreen() }
-                composable("settings") { SettingsScreen() }
+                composable("settings") {
+                    SettingsScreen(authRepository, userRepository) {
+                        navController.navigate("login") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
+                }
                 composable("logout") {
                     LaunchedEffect(Unit) {
-                        repository.logout()
+                        authRepository.logout()
                         navController.navigate("login") {
                             popUpTo("login") { inclusive = true }
                         }
