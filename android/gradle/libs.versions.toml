@@ -21,6 +21,7 @@ datastore = "1.1.1"
 playServicesLocation = "21.3.0"
 uiToolingPreview = "1.9.0"
 uiTooling = "1.9.0"
+work = "2.9.0"
 
 [libraries]
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
@@ -49,6 +50,7 @@ androidx-datastore-preferences = { group = "androidx.datastore", name = "datasto
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "uiToolingPreview" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

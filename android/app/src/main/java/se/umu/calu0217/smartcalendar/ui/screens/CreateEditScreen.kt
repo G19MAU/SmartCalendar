@@ -2,11 +2,6 @@ package se.umu.calu0217.smartcalendar.ui.screens
 
 import android.Manifest
 import android.app.Activity
-import android.app.AlarmManager
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -26,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
@@ -35,7 +29,6 @@ import se.umu.calu0217.smartcalendar.data.repository.TasksRepository
 import se.umu.calu0217.smartcalendar.domain.CreateActivityRequest
 import se.umu.calu0217.smartcalendar.domain.CreateTaskRequest
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -94,21 +87,6 @@ LaunchedEffect(Unit) {
         }
     }
 
-    fun scheduleNotification(title: String, time: LocalDateTime) {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(context, ReminderReceiver::class.java).apply {
-            putExtra("title", title)
-        }
-        val pending = PendingIntent.getBroadcast(
-            context,
-            title.hashCode(),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        val millis = time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, millis, pending)
-    }
-
     fun save() {
         val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
         scope.launch {
@@ -121,7 +99,6 @@ LaunchedEffect(Unit) {
                     categoryId = categoryId.toIntOrNull() ?: 0
                 )
                 activitiesRepo.create(request)
-                scheduleNotification(title, dateTime)
             } else {
                 val request = CreateTaskRequest(
                     title = title,
@@ -130,7 +107,6 @@ LaunchedEffect(Unit) {
                     categoryId = categoryId.toIntOrNull() ?: 0
                 )
                 tasksRepo.create(request)
-                scheduleNotification(title, dateTime)
             }
         }
     }
@@ -235,27 +211,3 @@ LaunchedEffect(Unit) {
     }
 }
 
-class ReminderReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) {
-        val title = intent.getStringExtra("title") ?: return
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channelId = "reminders"
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Reminders", NotificationManager.IMPORTANCE_HIGH)
-            notificationManager.createNotificationChannel(channel)
-        }
-        val notification = NotificationCompat.Builder(context, channelId)
-            .setContentTitle(title)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .build()
-        
-        // Android 13+ requires POST_NOTIFICATIONS at runtime
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
-        
-        notificationManager.notify(title.hashCode(), notification)
-    }
-}
