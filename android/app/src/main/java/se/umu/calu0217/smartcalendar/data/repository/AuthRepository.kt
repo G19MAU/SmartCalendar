@@ -8,6 +8,9 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import se.umu.calu0217.smartcalendar.data.TokenDataStore
 import se.umu.calu0217.smartcalendar.data.api.AuthApi
 import se.umu.calu0217.smartcalendar.data.db.AppDatabase
+import se.umu.calu0217.smartcalendar.domain.ChangeEmailRequest
+import se.umu.calu0217.smartcalendar.domain.ChangePasswordRequest
+import se.umu.calu0217.smartcalendar.domain.DeleteAccountRequest
 import se.umu.calu0217.smartcalendar.domain.LoginRequest
 
 class AuthRepository(context: Context) {
@@ -30,6 +33,37 @@ class AuthRepository(context: Context) {
         return try {
             val response = api.login(LoginRequest(email, password))
             dataStore.saveToken(response.accessToken)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun changeEmail(newEmail: String, password: String): Boolean {
+        val token = dataStore.getToken() ?: return false
+        return try {
+            api.changeEmail("Bearer $token", ChangeEmailRequest(newEmail, password))
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun changePassword(oldPassword: String, newPassword: String): Boolean {
+        val token = dataStore.getToken() ?: return false
+        return try {
+            api.changePassword("Bearer $token", ChangePasswordRequest(oldPassword, newPassword))
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun deleteAccount(password: String): Boolean {
+        val token = dataStore.getToken() ?: return false
+        return try {
+            api.deleteAccount("Bearer $token", DeleteAccountRequest(password))
+            logout()
             true
         } catch (e: Exception) {
             false
