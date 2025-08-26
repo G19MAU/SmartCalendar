@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -17,6 +18,7 @@ import se.umu.calu0217.smartcalendar.data.repository.UserRepository
 import se.umu.calu0217.smartcalendar.ui.components.BottomNavBar
 import se.umu.calu0217.smartcalendar.ui.screens.AgendaScreen
 import se.umu.calu0217.smartcalendar.ui.screens.CalendarScreen
+import se.umu.calu0217.smartcalendar.ui.screens.CreateEditScreen
 import se.umu.calu0217.smartcalendar.ui.screens.SettingsScreen
 import se.umu.calu0217.smartcalendar.ui.screens.TodoScreen
 import se.umu.calu0217.smartcalendar.ui.screens.LoginScreen
@@ -70,3 +72,8 @@ fun SmartCalendarApp() {
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    SmartCalendarApp()
+}

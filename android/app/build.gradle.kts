@@ -53,12 +53,16 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.navigation.compose)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.moshi)
     implementation(libs.moshi.kotlin)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.ui.tooling.preview)
+    debugImplementation(libs.androidx.ui.tooling)
     kapt(libs.androidx.room.compiler)
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
@@ -68,4 +72,5 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
 }

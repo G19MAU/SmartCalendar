@@ -2,7 +2,6 @@ package se.umu.calu0217.smartcalendar.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.weight
 import androidx.compose.material.BottomAppBar
 import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton

@@ -67,13 +67,29 @@ fun CreateEditScreen() {
             if (text != null) description = text
         }
     }
+val notificationPermissionLauncher = rememberLauncherForActivityResult(
+    ActivityResultContracts.RequestPermission()
+) { /* no-op */ }
 
+LaunchedEffect(Unit) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+        ActivityCompat.checkSelfPermission(
+            context,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) != PackageManager.PERMISSION_GRANTED
+    ) {
+        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+}
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) {
+        if (granted &&
+            (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+             ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+        ) {
             fusedLocation.lastLocation.addOnSuccessListener { loc ->
-                if (loc != null) coords = loc.latitude to loc.longitude
+                loc?.let { coords = it.latitude to it.longitude }
             }
         }
     }
@@ -202,13 +218,11 @@ fun CreateEditScreen() {
                     Text("$lat, $lng", modifier = Modifier.weight(1f))
                 }
                 IconButton(onClick = {
-                    if (ActivityCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                        ) == PackageManager.PERMISSION_GRANTED
+                    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                        ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
                     ) {
                         fusedLocation.lastLocation.addOnSuccessListener { loc ->
-                            if (loc != null) coords = loc.latitude to loc.longitude
+                            loc?.let { coords = it.latitude to it.longitude }
                         }
                     } else {
                         locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -234,6 +248,14 @@ class ReminderReceiver : BroadcastReceiver() {
             .setContentTitle(title)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .build()
+        
+        // Android 13+ requires POST_NOTIFICATIONS at runtime
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        
         notificationManager.notify(title.hashCode(), notification)
     }
 }
