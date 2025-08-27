@@ -27,7 +27,7 @@ class ActivitiesRepository(context: Context) {
         context,
         AppDatabase::class.java,
         "smartcalendar-db"
-    ).build()
+    ).fallbackToDestructiveMigration().build()
 
     private val workManager = WorkManager.getInstance(context)
 

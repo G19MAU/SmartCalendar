@@ -19,6 +19,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import se.umu.calu0217.smartcalendar.data.db.TaskEntity
 import se.umu.calu0217.smartcalendar.ui.viewmodels.TasksViewModel
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -48,6 +51,18 @@ fun TodoScreen() {
 
     val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val scope = rememberCoroutineScope()
+
+    var isRefreshing by remember { mutableStateOf(false) }
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            scope.launch {
+                isRefreshing = true
+                viewModel.refresh()
+                isRefreshing = false
+            }
+        }
+    )
 
     ModalBottomSheetLayout(
         sheetState = sheetState,
@@ -111,15 +126,26 @@ fun TodoScreen() {
                 )
             }
         ) { padding ->
-            LazyColumn(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(16.dp)
+                    .pullRefresh(pullRefreshState)
             ) {
-                items(filteredTasks) { task ->
-                    TaskCard(task = task) { viewModel.toggleComplete(task.id) }
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    items(filteredTasks) { task ->
+                        TaskCard(task = task) { viewModel.toggleComplete(task.id) }
+                    }
                 }
+                PullRefreshIndicator(
+                    refreshing = isRefreshing,
+                    state = pullRefreshState,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
             }
         }
     }
