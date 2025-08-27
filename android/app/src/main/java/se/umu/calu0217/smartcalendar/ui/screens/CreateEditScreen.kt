@@ -58,12 +58,13 @@ fun CreateEditScreen(navController: NavController, itemId: Int? = null) {
 
     val scope = rememberCoroutineScope()
 
+    var speechTarget by remember { mutableStateOf<(String) -> Unit>({}) }
     val speechLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val text = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
-            if (text != null) description = text
+            if (text != null) speechTarget(text)
         }
     }
 val notificationPermissionLauncher = rememberLauncherForActivityResult(
@@ -99,6 +100,7 @@ LaunchedEffect(Unit) {
                 val request = CreateActivityRequest(
                     title = title,
                     description = description.ifBlank { null },
+                    location = coords?.let { "${it.first},${it.second}" },
                     startDate = startDate,
                     endDate = endDate,
                     categoryId = categoryId.toIntOrNull() ?: 0,
@@ -109,6 +111,7 @@ LaunchedEffect(Unit) {
                 val request = CreateTaskRequest(
                     title = title,
                     description = description.ifBlank { null },
+                    location = coords?.let { "${it.first},${it.second}" },
                     dueDate = dueDate,
                     categoryId = categoryId.toIntOrNull() ?: 0,
                     recurrence = recurrence
@@ -144,7 +147,22 @@ LaunchedEffect(Unit) {
                 value = title,
                 onValueChange = { title = it },
                 label = { Text("Title") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                trailingIcon = {
+                    IconButton(onClick = {
+                        speechTarget = { title = it }
+                        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                            putExtra(
+                                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                            )
+                            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+                        }
+                        speechLauncher.launch(intent)
+                    }) {
+                        Icon(Icons.Filled.Mic, contentDescription = "Mic")
+                    }
+                }
             )
 
             OutlinedTextField(
@@ -154,6 +172,7 @@ LaunchedEffect(Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
                     IconButton(onClick = {
+                        speechTarget = { description = it }
                         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                             putExtra(
                                 RecognizerIntent.EXTRA_LANGUAGE_MODEL,

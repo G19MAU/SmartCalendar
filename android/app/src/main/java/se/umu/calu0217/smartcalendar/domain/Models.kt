@@ -30,6 +30,7 @@ data class DeleteAccountRequest(
 data class CreateActivityRequest(
     val title: String,
     val description: String?,
+    val location: String?,
     val startDate: LocalDateTime,
     val endDate: LocalDateTime,
     val categoryId: Int,
@@ -40,6 +41,7 @@ data class ActivityDTO(
     val id: Int,
     val title: String,
     val description: String?,
+    val location: String?,
     val startDate: LocalDateTime,
     val endDate: LocalDateTime,
     val category: String?,
@@ -61,6 +63,7 @@ data class CategoryDTO(
 data class CreateTaskRequest(
     val title: String,
     val description: String?,
+    val location: String?,
     val dueDate: LocalDateTime,
     val categoryId: Int,
     val recurrence: Recurrence = Recurrence.NONE
@@ -70,6 +73,7 @@ data class TaskDTO(
     val id: Int,
     val title: String,
     val description: String?,
+    val location: String?,
     val dueDate: LocalDateTime,
     val completed: Boolean,
     val category: String?,
