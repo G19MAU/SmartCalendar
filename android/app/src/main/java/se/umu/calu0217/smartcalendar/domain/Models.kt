@@ -32,7 +32,8 @@ data class CreateActivityRequest(
     val description: String?,
     val startDate: LocalDateTime,
     val endDate: LocalDateTime,
-    val categoryId: Int
+    val categoryId: Int,
+    val recurrence: Recurrence = Recurrence.NONE
 )
 
 data class ActivityDTO(
@@ -41,7 +42,8 @@ data class ActivityDTO(
     val description: String?,
     val startDate: LocalDateTime,
     val endDate: LocalDateTime,
-    val category: String?
+    val category: String?,
+    val recurrence: Recurrence = Recurrence.NONE
 )
 
 data class CreateCategoryRequest(
@@ -59,7 +61,8 @@ data class CreateTaskRequest(
     val title: String,
     val description: String?,
     val dueDate: LocalDateTime,
-    val categoryId: Int
+    val categoryId: Int,
+    val recurrence: Recurrence = Recurrence.NONE
 )
 
 data class TaskDTO(
@@ -69,7 +72,8 @@ data class TaskDTO(
     val dueDate: LocalDateTime,
     val completed: Boolean,
     val category: String?,
-    val updatedAt: String?
+    val updatedAt: String?,
+    val recurrence: Recurrence = Recurrence.NONE
 )
 
 data class ConvertTaskRequest(

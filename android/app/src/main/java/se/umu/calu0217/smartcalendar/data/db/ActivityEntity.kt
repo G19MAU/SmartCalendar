@@ -10,6 +10,7 @@ data class ActivityEntity(
     val description: String?,
     val startDate: String,
     val endDate: String,
-    val category: String?
+    val category: String?,
+    val recurrence: String
 )
 

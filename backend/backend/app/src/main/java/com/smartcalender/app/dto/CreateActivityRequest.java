@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import com.smartcalender.app.entity.Recurrence;
+
 public class CreateActivityRequest {
     @NotNull
     @NotBlank
@@ -26,6 +28,8 @@ public class CreateActivityRequest {
 
     private Long categoryId;
     private Long userId;
+
+    private Recurrence recurrence = Recurrence.NONE;
 
     @AssertTrue(message = "Start time must be before end time")
     public boolean isValidTimeRange() {
@@ -97,5 +101,13 @@ public class CreateActivityRequest {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public Recurrence getRecurrence() {
+        return recurrence;
+    }
+
+    public void setRecurrence(Recurrence recurrence) {
+        this.recurrence = recurrence;
     }
 }
