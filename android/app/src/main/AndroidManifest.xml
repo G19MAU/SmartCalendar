@@ -27,7 +27,7 @@
         </activity>
 
         <receiver
-            android:name=".ui.screens.ReminderReceiver"
+            android:name=".notifications.ReminderReceiver"
             android:exported="false" />
 
     </application>
