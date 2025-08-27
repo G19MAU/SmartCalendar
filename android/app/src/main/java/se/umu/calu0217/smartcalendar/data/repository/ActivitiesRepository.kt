@@ -8,6 +8,7 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import kotlinx.coroutines.flow.Flow
 import com.squareup.moshi.Moshi
+import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import se.umu.calu0217.smartcalendar.data.TokenDataStore
@@ -48,6 +49,7 @@ class ActivitiesRepository(context: Context) {
     suspend fun refresh() {
         val token = dataStore.getToken() ?: return
         try {
+            syncLocalChanges()
             val remote = api.getOngoing("Bearer $token") + api.getFuture("Bearer $token")
             val expanded = remote.flatMap { it.expand() }
             db.activityDao().clear()
@@ -73,6 +75,19 @@ class ActivitiesRepository(context: Context) {
             schedule(updated)
             refresh()
         } catch (_: Exception) {
+            val local = db.activityDao().getById(id) ?: return
+            val now = java.time.LocalDateTime.now().format(formatter)
+            db.activityDao().upsert(
+                local.copy(
+                    title = request.title,
+                    description = request.description,
+                    startDate = request.startDate.format(formatter),
+                    endDate = request.endDate.format(formatter),
+                    recurrence = request.recurrence.name,
+                    dirty = true,
+                    updatedAt = now
+                )
+            )
         }
     }
 
@@ -95,7 +110,9 @@ class ActivitiesRepository(context: Context) {
         startDate = startDate.format(formatter),
         endDate = endDate.format(formatter),
         category = category,
-        recurrence = recurrence.name
+        recurrence = recurrence.name,
+        updatedAt = updatedAt,
+        dirty = false
     )
 
     private fun ActivityDTO.expand(): List<ActivityDTO> {
@@ -151,6 +168,48 @@ class ActivitiesRepository(context: Context) {
             ExistingWorkPolicy.REPLACE,
             request
         )
+    }
+
+    private suspend fun syncLocalChanges() {
+        val token = dataStore.getToken() ?: return
+        val dirty = db.activityDao().getDirty()
+        for (activity in dirty) {
+            try {
+                val request = CreateActivityRequest(
+                    title = activity.title,
+                    description = activity.description,
+                    startDate = java.time.LocalDateTime.parse(activity.startDate),
+                    endDate = java.time.LocalDateTime.parse(activity.endDate),
+                    categoryId = 0,
+                    recurrence = Recurrence.valueOf(activity.recurrence)
+                )
+                api.edit("Bearer $token", activity.id, request)
+                val fresh = api.getById("Bearer $token", activity.id)
+                db.activityDao().upsert(fresh.toEntity())
+            } catch (e: HttpException) {
+                if (e.code() == 409) {
+                    val server = api.getById("Bearer $token", activity.id)
+                    val localTime = activity.updatedAt ?: ""
+                    val serverTime = server.updatedAt ?: ""
+                    if (localTime > serverTime) {
+                        val request = CreateActivityRequest(
+                            title = activity.title,
+                            description = activity.description,
+                            startDate = java.time.LocalDateTime.parse(activity.startDate),
+                            endDate = java.time.LocalDateTime.parse(activity.endDate),
+                            categoryId = 0,
+                            recurrence = Recurrence.valueOf(activity.recurrence)
+                        )
+                        api.edit("Bearer $token", activity.id, request)
+                        val fresh = api.getById("Bearer $token", activity.id)
+                        db.activityDao().upsert(fresh.toEntity())
+                    } else {
+                        db.activityDao().upsert(server.toEntity())
+                    }
+                }
+            } catch (_: Exception) {
+            }
+        }
     }
 }
 
