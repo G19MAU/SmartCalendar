@@ -11,7 +11,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import se.umu.calu0217.smartcalendar.ui.viewmodels.ActivitiesViewModel
 import se.umu.calu0217.smartcalendar.ui.viewmodels.TasksViewModel
 import java.time.LocalDate
@@ -26,7 +26,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun AgendaScreen() {
+fun AgendaScreen(navController: NavController) {
     val context = LocalContext.current
     val activitiesViewModel: ActivitiesViewModel =
         viewModel(factory = ActivitiesViewModel.provideFactory(context))
@@ -52,7 +52,8 @@ fun AgendaScreen() {
                 title = activity.title,
                 time = "${activity.startDate.toLocalTime()} - ${activity.endDate.toLocalTime()}",
                 description = activity.description,
-                color = activity.category?.toColor() ?: Color.Gray
+                color = activity.category?.toColor() ?: Color.Gray,
+                onClick = { navController.navigate("activity/${activity.id}") }
             )
         }
         items(todayTasks) { task ->
@@ -60,7 +61,8 @@ fun AgendaScreen() {
                 title = task.title,
                 time = task.dueDate.toLocalTime(),
                 description = task.description,
-                color = task.category?.toColor() ?: Color.Gray
+                color = task.category?.toColor() ?: Color.Gray,
+                onClick = { navController.navigate("task/${task.id}") }
             )
         }
         item { Spacer(modifier = Modifier.height(24.dp)) }
@@ -70,7 +72,8 @@ fun AgendaScreen() {
                 title = activity.title,
                 time = "${activity.startDate.toLocalTime()} - ${activity.endDate.toLocalTime()}",
                 description = activity.description,
-                color = activity.category?.toColor() ?: Color.Gray
+                color = activity.category?.toColor() ?: Color.Gray,
+                onClick = { navController.navigate("activity/${activity.id}") }
             )
         }
         items(tomorrowTasks) { task ->
@@ -78,7 +81,8 @@ fun AgendaScreen() {
                 title = task.title,
                 time = task.dueDate.toLocalTime(),
                 description = task.description,
-                color = task.category?.toColor() ?: Color.Gray
+                color = task.category?.toColor() ?: Color.Gray,
+                onClick = { navController.navigate("task/${task.id}") }
             )
         }
     }
@@ -89,20 +93,20 @@ private fun AgendaItemCard(
     title: String,
     time: String,
     description: String?,
-    color: Color
+    color: Color,
+    onClick: () -> Unit
 ) {
-    val expanded = remember { mutableStateOf(false) }
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .clickable { expanded.value = !expanded.value },
+            .clickable { onClick() },
         border = BorderStroke(2.dp, color)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(title, style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.SemiBold)
             Text(time, style = MaterialTheme.typography.body2)
-            if (expanded.value && !description.isNullOrBlank()) {
+            if (!description.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(description, style = MaterialTheme.typography.body2)
             }

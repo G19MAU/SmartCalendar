@@ -22,10 +22,11 @@ import se.umu.calu0217.smartcalendar.ui.viewmodels.TasksViewModel
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun TodoScreen() {
+fun TodoScreen(navController: NavController) {
     val context = LocalContext.current
     val viewModel: TasksViewModel =
         viewModel(factory = TasksViewModel.provideFactory(context))
@@ -138,7 +139,11 @@ fun TodoScreen() {
                         .padding(16.dp)
                 ) {
                     items(filteredTasks) { task ->
-                        TaskCard(task = task) { viewModel.toggleComplete(task.id) }
+                        TaskCard(
+                            task = task,
+                            onToggle = { viewModel.toggleComplete(task.id) },
+                            onClick = { navController.navigate("task/${task.id}") }
+                        )
                     }
                 }
                 PullRefreshIndicator(
@@ -158,11 +163,12 @@ private enum class StatusFilter(val label: String) {
 }
 
 @Composable
-private fun TaskCard(task: TaskEntity, onToggle: () -> Unit) {
+private fun TaskCard(task: TaskEntity, onToggle: () -> Unit, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp)
+            .clickable { onClick() },
         border = BorderStroke(2.dp, task.category?.toColor() ?: Color.Gray)
     ) {
         Row(
