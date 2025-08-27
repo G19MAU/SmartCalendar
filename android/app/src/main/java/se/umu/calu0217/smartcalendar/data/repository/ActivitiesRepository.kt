@@ -7,16 +7,17 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import kotlinx.coroutines.flow.Flow
+import com.squareup.moshi.Moshi
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import se.umu.calu0217.smartcalendar.data.TokenDataStore
 import se.umu.calu0217.smartcalendar.data.ReminderWorker
+import se.umu.calu0217.smartcalendar.data.LocalDateTimeAdapter
 import se.umu.calu0217.smartcalendar.data.api.ActivityApi
 import se.umu.calu0217.smartcalendar.data.db.ActivityEntity
 import se.umu.calu0217.smartcalendar.data.db.AppDatabase
 import se.umu.calu0217.smartcalendar.domain.ActivityDTO
 import se.umu.calu0217.smartcalendar.domain.CreateActivityRequest
-import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
@@ -31,9 +32,13 @@ class ActivitiesRepository(context: Context) {
 
     private val workManager = WorkManager.getInstance(context)
 
+    private val moshi = Moshi.Builder()
+        .add(LocalDateTimeAdapter())
+        .build()
+
     private val api: ActivityApi = Retrofit.Builder()
         .baseUrl("http://10.0.2.2:8080/api/")
-        .addConverterFactory(MoshiConverterFactory.create())
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
         .build()
         .create(ActivityApi::class.java)
 
@@ -79,24 +84,22 @@ class ActivitiesRepository(context: Context) {
         }
     }
 
+    private val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+
     private fun ActivityDTO.toEntity() = ActivityEntity(
         id = id,
         title = title,
         description = description,
-        startDate = startDate,
-        endDate = endDate,
+        startDate = startDate.format(formatter),
+        endDate = endDate.format(formatter),
         category = category
     )
 
     private fun schedule(activity: ActivityDTO) {
-        val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-        val trigger = try {
-            LocalDateTime.parse(activity.startDate, formatter)
-                .atZone(ZoneId.systemDefault())
-                .toInstant().toEpochMilli()
-        } catch (e: Exception) {
-            return
-        }
+        val trigger = activity.startDate
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
         val delay = trigger - System.currentTimeMillis()
         if (delay <= 0) {
             workManager.cancelUniqueWork("activity-${activity.id}")
