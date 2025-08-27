@@ -138,6 +138,7 @@ class TasksRepository(context: Context) {
         id = id,
         title = title,
         description = description,
+        location = location,
         dueDate = dueDate.format(formatter),
         completed = completed,
         category = category,

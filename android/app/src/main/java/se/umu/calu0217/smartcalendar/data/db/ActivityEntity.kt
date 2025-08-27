@@ -8,6 +8,7 @@ data class ActivityEntity(
     @PrimaryKey val id: Int,
     val title: String,
     val description: String?,
+    val location: String?,
     val startDate: String,
     val endDate: String,
     val category: String?,

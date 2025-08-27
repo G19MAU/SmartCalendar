@@ -81,6 +81,7 @@ class ActivitiesRepository(context: Context) {
                 local.copy(
                     title = request.title,
                     description = request.description,
+                    location = request.location,
                     startDate = request.startDate.format(formatter),
                     endDate = request.endDate.format(formatter),
                     recurrence = request.recurrence.name,
@@ -107,6 +108,7 @@ class ActivitiesRepository(context: Context) {
         id = id,
         title = title,
         description = description,
+        location = location,
         startDate = startDate.format(formatter),
         endDate = endDate.format(formatter),
         category = category,
@@ -178,6 +180,7 @@ class ActivitiesRepository(context: Context) {
                 val request = CreateActivityRequest(
                     title = activity.title,
                     description = activity.description,
+                    location = activity.location,
                     startDate = java.time.LocalDateTime.parse(activity.startDate),
                     endDate = java.time.LocalDateTime.parse(activity.endDate),
                     categoryId = 0,
@@ -195,6 +198,7 @@ class ActivitiesRepository(context: Context) {
                         val request = CreateActivityRequest(
                             title = activity.title,
                             description = activity.description,
+                            location = activity.location,
                             startDate = java.time.LocalDateTime.parse(activity.startDate),
                             endDate = java.time.LocalDateTime.parse(activity.endDate),
                             categoryId = 0,

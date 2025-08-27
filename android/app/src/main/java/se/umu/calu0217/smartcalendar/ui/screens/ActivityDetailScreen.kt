@@ -1,5 +1,8 @@
 package se.umu.calu0217.smartcalendar.ui.screens
 
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -56,7 +59,17 @@ fun ActivityDetailScreen(navController: NavController, activityId: Int) {
         activity.description?.let { Text(it) }
         Text("Start: $start")
         Text("End: $end")
-        Text("Location: Not specified")
+        activity.location?.let { loc ->
+            Text(
+                text = "Location: $loc",
+                color = MaterialTheme.colors.primary,
+                modifier = Modifier.clickable {
+                    val uri = Uri.parse("geo:$loc?q=$loc")
+                    val intent = Intent(Intent.ACTION_VIEW, uri)
+                    context.startActivity(intent)
+                }
+            )
+        } ?: Text("Location: Not specified")
         Text("Category: ${activity.category ?: "None"}")
         Spacer(modifier = Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
