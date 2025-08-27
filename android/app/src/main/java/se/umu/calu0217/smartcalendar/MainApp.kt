@@ -23,6 +23,8 @@ import se.umu.calu0217.smartcalendar.ui.screens.CreateEditScreen
 import se.umu.calu0217.smartcalendar.ui.screens.SettingsScreen
 import se.umu.calu0217.smartcalendar.ui.screens.TodoScreen
 import se.umu.calu0217.smartcalendar.ui.screens.LoginScreen
+import se.umu.calu0217.smartcalendar.ui.screens.ActivityDetailScreen
+import se.umu.calu0217.smartcalendar.ui.screens.TaskDetailScreen
 
 @Composable
 fun SmartCalendarApp() {
@@ -49,9 +51,9 @@ fun SmartCalendarApp() {
                 startDestination = "agenda",
                 modifier = Modifier.padding(innerPadding)
             ) {
-                composable("agenda") { AgendaScreen() }
+                composable("agenda") { AgendaScreen(navController) }
                 composable("calendar") { CalendarScreen() }
-                composable("todos") { TodoScreen() }
+                composable("todos") { TodoScreen(navController) }
                 composable("settings") {
                     SettingsScreen(authRepository, userRepository) {
                         navController.navigate("login") {
@@ -82,6 +84,20 @@ fun SmartCalendarApp() {
                     val id = backStackEntry.arguments?.getInt("itemId")
                     val itemId = id.takeIf { it != -1 }
                     CreateEditScreen(navController, itemId)
+                }
+                composable(
+                    route = "activity/{activityId}",
+                    arguments = listOf(navArgument("activityId") { type = NavType.IntType })
+                ) { backStackEntry ->
+                    val id = backStackEntry.arguments?.getInt("activityId") ?: return@composable
+                    ActivityDetailScreen(navController, id)
+                }
+                composable(
+                    route = "task/{taskId}",
+                    arguments = listOf(navArgument("taskId") { type = NavType.IntType })
+                ) { backStackEntry ->
+                    val id = backStackEntry.arguments?.getInt("taskId") ?: return@composable
+                    TaskDetailScreen(navController, id)
                 }
             }
         }
