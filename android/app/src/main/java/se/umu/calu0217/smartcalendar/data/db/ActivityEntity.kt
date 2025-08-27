@@ -11,6 +11,8 @@ data class ActivityEntity(
     val startDate: String,
     val endDate: String,
     val category: String?,
-    val recurrence: String
+    val recurrence: String,
+    val updatedAt: String?,
+    val dirty: Boolean = false
 )
 

@@ -12,6 +12,12 @@ import se.umu.calu0217.smartcalendar.domain.ActivityDTO
 import se.umu.calu0217.smartcalendar.domain.CreateActivityRequest
 
 interface ActivityApi {
+    @GET("activities/{id}")
+    suspend fun getById(
+        @Header("Authorization") auth: String,
+        @Path("id") id: Int
+    ): ActivityDTO
+
     @POST("activities/create")
     suspend fun create(
         @Header("Authorization") auth: String,

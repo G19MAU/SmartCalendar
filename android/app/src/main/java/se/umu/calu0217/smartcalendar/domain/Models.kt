@@ -43,6 +43,7 @@ data class ActivityDTO(
     val startDate: LocalDateTime,
     val endDate: LocalDateTime,
     val category: String?,
+    val updatedAt: String?,
     val recurrence: Recurrence = Recurrence.NONE
 )
 
