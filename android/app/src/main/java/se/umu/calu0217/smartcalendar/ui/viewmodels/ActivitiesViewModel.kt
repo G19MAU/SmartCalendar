@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import se.umu.calu0217.smartcalendar.data.db.ActivityEntity
@@ -19,8 +21,28 @@ class ActivitiesViewModel(private val repository: ActivitiesRepository) : ViewMo
             initialValue = emptyList()
         )
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _error = MutableStateFlow<Throwable?>(null)
+    val error: StateFlow<Throwable?> = _error.asStateFlow()
+
     init {
-        viewModelScope.launch { repository.refresh() }
+        refresh()
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            val result = repository.refresh()
+            _isLoading.value = false
+            result.exceptionOrNull()?.let { _error.value = it }
+        }
+    }
+
+    fun clearError() {
+        _error.value = null
     }
 
     companion object {

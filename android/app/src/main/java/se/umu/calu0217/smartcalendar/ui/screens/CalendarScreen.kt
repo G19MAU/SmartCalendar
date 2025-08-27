@@ -8,9 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +30,8 @@ fun CalendarScreen() {
     val activitiesViewModel: ActivitiesViewModel =
         viewModel(factory = ActivitiesViewModel.provideFactory(context))
     val activities by activitiesViewModel.activities.collectAsState()
+    val isLoading by activitiesViewModel.isLoading.collectAsState()
+    val error by activitiesViewModel.error.collectAsState()
 
     var scale by remember { mutableStateOf(1f) }
     var level by remember { mutableStateOf(ZoomLevel.MONTH) }
@@ -41,8 +41,25 @@ fun CalendarScreen() {
         activities.filter { it.startDate.toLocalDate() == selectedDate }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Box(
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(error) {
+        error?.let {
+            val result = snackbarHostState.showSnackbar(
+                message = it.message ?: "Failed to load activities",
+                actionLabel = "Retry"
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                activitiesViewModel.refresh()
+            }
+            activitiesViewModel.clearError()
+        }
+    }
+
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(300.dp)
@@ -78,23 +95,28 @@ fun CalendarScreen() {
             }
         }
 
-        Divider(modifier = Modifier.padding(vertical = 8.dp))
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        Text(
-            text = "Agenda for $selectedDate",
-            style = MaterialTheme.typography.h6,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        LazyColumn(modifier = Modifier.padding(16.dp)) {
-            items(selectedActivities) { activity ->
-                Text(
-                    text = "${activity.startDate.toLocalTime()} - ${activity.title}",
-                    style = MaterialTheme.typography.body1,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
+            Text(
+                text = "Agenda for $selectedDate",
+                style = MaterialTheme.typography.h6,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            LazyColumn(modifier = Modifier.padding(16.dp)) {
+                items(selectedActivities) { activity ->
+                    Text(
+                        text = "${activity.startDate.toLocalTime()} - ${activity.title}",
+                        style = MaterialTheme.typography.body1,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
             }
         }
+        if (isLoading) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        }
     }
+}
 }
 
 enum class ZoomLevel { MONTH, WEEK, DAY }
