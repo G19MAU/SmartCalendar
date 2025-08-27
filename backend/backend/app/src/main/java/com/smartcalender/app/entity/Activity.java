@@ -37,6 +37,9 @@ public class Activity {
     @NotNull
     private User user;
 
+    @Enumerated(EnumType.STRING)
+    private Recurrence recurrence = Recurrence.NONE;
+
     public Activity() {
     }
 
@@ -136,5 +139,13 @@ public class Activity {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Recurrence getRecurrence() {
+        return recurrence;
+    }
+
+    public void setRecurrence(Recurrence recurrence) {
+        this.recurrence = recurrence;
     }
 }

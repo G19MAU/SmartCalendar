@@ -30,6 +30,7 @@ import se.umu.calu0217.smartcalendar.data.repository.ActivitiesRepository
 import se.umu.calu0217.smartcalendar.data.repository.TasksRepository
 import se.umu.calu0217.smartcalendar.domain.CreateActivityRequest
 import se.umu.calu0217.smartcalendar.domain.CreateTaskRequest
+import se.umu.calu0217.smartcalendar.domain.Recurrence
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -47,7 +48,8 @@ fun CreateEditScreen(navController: NavController, itemId: Int? = null) {
     var endDate by remember { mutableStateOf(LocalDateTime.now()) }
     var dueDate by remember { mutableStateOf(LocalDateTime.now()) }
     var categoryId by remember { mutableStateOf("") }
-    var recurrence by remember { mutableStateOf("") }
+    var recurrence by remember { mutableStateOf(Recurrence.NONE) }
+    var recurrenceExpanded by remember { mutableStateOf(false) }
     var coords by remember { mutableStateOf<Pair<Double, Double>?>(null) }
 
     val fusedLocation: FusedLocationProviderClient = remember {
@@ -99,7 +101,8 @@ LaunchedEffect(Unit) {
                     description = description.ifBlank { null },
                     startDate = startDate,
                     endDate = endDate,
-                    categoryId = categoryId.toIntOrNull() ?: 0
+                    categoryId = categoryId.toIntOrNull() ?: 0,
+                    recurrence = recurrence
                 )
                 activitiesRepo.create(request)
             } else {
@@ -107,7 +110,8 @@ LaunchedEffect(Unit) {
                     title = title,
                     description = description.ifBlank { null },
                     dueDate = dueDate,
-                    categoryId = categoryId.toIntOrNull() ?: 0
+                    categoryId = categoryId.toIntOrNull() ?: 0,
+                    recurrence = recurrence
                 )
                 tasksRepo.create(request)
             }
@@ -230,12 +234,30 @@ LaunchedEffect(Unit) {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            OutlinedTextField(
-                value = recurrence,
-                onValueChange = { recurrence = it },
-                label = { Text("Recurrence") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            Box {
+                OutlinedTextField(
+                    value = recurrence.name,
+                    onValueChange = {},
+                    label = { Text("Recurrence") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { recurrenceExpanded = true },
+                    readOnly = true
+                )
+                DropdownMenu(
+                    expanded = recurrenceExpanded,
+                    onDismissRequest = { recurrenceExpanded = false }
+                ) {
+                    Recurrence.values().forEach { option ->
+                        DropdownMenuItem(onClick = {
+                            recurrence = option
+                            recurrenceExpanded = false
+                        }) {
+                            Text(option.name)
+                        }
+                    }
+                }
+            }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 coords?.let { (lat, lng) ->

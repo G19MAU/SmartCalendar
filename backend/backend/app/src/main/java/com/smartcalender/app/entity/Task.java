@@ -36,6 +36,9 @@ public class Task {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Enumerated(EnumType.STRING)
+    private Recurrence recurrence = Recurrence.NONE;
+
 
     public Task() {
     }
@@ -119,5 +122,13 @@ public class Task {
 
     public User getUser() {
         return user;
+    }
+
+    public Recurrence getRecurrence() {
+        return recurrence;
+    }
+
+    public void setRecurrence(Recurrence recurrence) {
+        this.recurrence = recurrence;
     }
 }

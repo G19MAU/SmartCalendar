@@ -68,6 +68,7 @@ public class TaskService {
         task.setLocation(newTask.getLocation());
         task.setCompleted(newTask.isCompleted());
         task.setUser(user);
+        task.setRecurrence(newTask.getRecurrence());
 
         if (newTask.getCategoryId() != null) {
             Category category = categoryRepository.findByIdAndUser(newTask.getCategoryId(), user)
@@ -100,6 +101,9 @@ public class TaskService {
         taskToEdit.setDate(newTask.getDate());
         taskToEdit.setLocation(newTask.getLocation());
         taskToEdit.setCompleted(newTask.isCompleted());
+        if (newTask.getRecurrence() != null) {
+            taskToEdit.setRecurrence(newTask.getRecurrence());
+        }
 
         if (newTask.getCategoryId() != null) {
             Category category = categoryRepository.findByIdAndUser(newTask.getCategoryId(), user)
@@ -194,6 +198,7 @@ public class TaskService {
         activity.setStartTime(taskRequest.getStartTime());
         activity.setEndTime(taskRequest.getEndTime());
         activity.setUser(user);
+        activity.setRecurrence(task.getRecurrence());
 
         if (task.getCategory() != null) {
             Category category = categoryRepository.findByIdAndUser(task.getCategory().getId(), user)

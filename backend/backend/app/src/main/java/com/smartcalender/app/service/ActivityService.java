@@ -84,6 +84,7 @@ public class ActivityService {
         activity.setEndTime(request.getEndTime());
         activity.setLocation(request.getLocation());
         activity.setUser(user);
+        activity.setRecurrence(request.getRecurrence());
 
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(request.getCategoryId())
@@ -153,6 +154,9 @@ public class ActivityService {
             activityToEdit.setStartTime(activityDTO.getStartTime());
             activityToEdit.setEndTime(activityDTO.getEndTime());
             activityToEdit.setLocation(activityDTO.getLocation());
+            if (activityDTO.getRecurrence() != null) {
+                activityToEdit.setRecurrence(activityDTO.getRecurrence());
+            }
 
             if (activityDTO.getCategoryId() != null) {
                 Category category = categoryRepository.findById(activityDTO.getCategoryId())

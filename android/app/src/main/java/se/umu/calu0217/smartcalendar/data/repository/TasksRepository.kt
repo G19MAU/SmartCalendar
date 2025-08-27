@@ -19,6 +19,7 @@ import se.umu.calu0217.smartcalendar.data.db.AppDatabase
 import se.umu.calu0217.smartcalendar.data.db.TaskEntity
 import se.umu.calu0217.smartcalendar.domain.CreateTaskRequest
 import se.umu.calu0217.smartcalendar.domain.TaskDTO
+import se.umu.calu0217.smartcalendar.domain.Recurrence
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -141,7 +142,8 @@ class TasksRepository(context: Context) {
         completed = completed,
         category = category,
         updatedAt = updatedAt,
-        dirty = false
+        dirty = false,
+        recurrence = recurrence.name
     )
 
     private fun schedule(task: TaskDTO) {

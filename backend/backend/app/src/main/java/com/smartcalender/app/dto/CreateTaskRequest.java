@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 
+import com.smartcalender.app.entity.Recurrence;
+
 public class CreateTaskRequest {
     @NotBlank
     @NotNull
@@ -15,6 +17,7 @@ public class CreateTaskRequest {
     private String location;
     private boolean completed = false;
     private Long categoryId;
+    private Recurrence recurrence = Recurrence.NONE;
 
     public CreateTaskRequest() {
     }
@@ -65,5 +68,13 @@ public class CreateTaskRequest {
 
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
+    }
+
+    public Recurrence getRecurrence() {
+        return recurrence;
+    }
+
+    public void setRecurrence(Recurrence recurrence) {
+        this.recurrence = recurrence;
     }
 }

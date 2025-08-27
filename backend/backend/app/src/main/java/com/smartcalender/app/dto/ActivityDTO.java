@@ -1,6 +1,7 @@
 package com.smartcalender.app.dto;
 
 import com.smartcalender.app.entity.Activity;
+import com.smartcalender.app.entity.Recurrence;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -25,6 +26,7 @@ public class ActivityDTO {
     private Boolean future;
     private Boolean validTimeRange;
     private List<String> warnings;
+    private Recurrence recurrence;
 
     public ActivityDTO() {
     }
@@ -44,6 +46,7 @@ public class ActivityDTO {
         this.future = activity.isFuture();
         this.validTimeRange = activity.isValidTimeRange();
         this.warnings = new ArrayList<>();
+        this.recurrence = activity.getRecurrence();
     }
 
     public ActivityDTO(Activity activity, List <String> warnings) {
@@ -61,6 +64,7 @@ public class ActivityDTO {
         this.future = activity.isFuture();
         this.validTimeRange = activity.isValidTimeRange();
         this.warnings = warnings != null ? warnings : new ArrayList<>();
+        this.recurrence = activity.getRecurrence();
     }
 
     public Long getId() {
@@ -197,5 +201,13 @@ public class ActivityDTO {
 
     public void setWarnings(List<String> warnings) {
         this.warnings = warnings;
+    }
+
+    public Recurrence getRecurrence() {
+        return recurrence;
+    }
+
+    public void setRecurrence(Recurrence recurrence) {
+        this.recurrence = recurrence;
     }
 }

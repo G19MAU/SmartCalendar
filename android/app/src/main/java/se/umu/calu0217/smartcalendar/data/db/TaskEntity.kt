@@ -12,6 +12,7 @@ data class TaskEntity(
     val completed: Boolean,
     val category: String?,
     val updatedAt: String?,
-    val dirty: Boolean = false
+    val dirty: Boolean = false,
+    val recurrence: String
 )
 
