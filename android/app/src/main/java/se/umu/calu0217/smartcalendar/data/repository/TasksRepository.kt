@@ -79,6 +79,19 @@ class TasksRepository(context: Context) {
             schedule(updated)
             refresh()
         } catch (_: Exception) {
+            val local = db.taskDao().getById(id) ?: return
+            val now = LocalDateTime.now().format(formatter)
+            db.taskDao().upsert(
+                local.copy(
+                    title = request.title,
+                    description = request.description,
+                    location = request.location,
+                    dueDate = request.dueDate.format(formatter),
+                    recurrence = request.recurrence.name,
+                    dirty = true,
+                    updatedAt = now
+                )
+            )
         }
     }
 
@@ -115,17 +128,39 @@ class TasksRepository(context: Context) {
         val dirty = db.taskDao().getDirty()
         for (task in dirty) {
             try {
-                api.toggleComplete("Bearer $token", task.id)
-                val fresh = api.getById("Bearer $token", task.id)
-                db.taskDao().upsert(fresh.toEntity())
+                val request = CreateTaskRequest(
+                    title = task.title,
+                    description = task.description,
+                    location = task.location,
+                    dueDate = LocalDateTime.parse(task.dueDate),
+                    categoryId = 0,
+                    recurrence = Recurrence.valueOf(task.recurrence)
+                )
+                var updated = api.edit("Bearer $token", task.id, request)
+                if (updated.completed != task.completed) {
+                    api.toggleComplete("Bearer $token", task.id)
+                    updated = api.getById("Bearer $token", task.id)
+                }
+                db.taskDao().upsert(updated.toEntity())
             } catch (e: HttpException) {
                 if (e.code() == 409) {
                     val server = api.getById("Bearer $token", task.id)
                     val localTime = task.updatedAt ?: ""
                     val serverTime = server.updatedAt ?: ""
                     if (localTime > serverTime) {
-                        api.toggleComplete("Bearer $token", task.id)
-                        val fresh = api.getById("Bearer $token", task.id)
+                        val request = CreateTaskRequest(
+                            title = task.title,
+                            description = task.description,
+                            location = task.location,
+                            dueDate = LocalDateTime.parse(task.dueDate),
+                            categoryId = 0,
+                            recurrence = Recurrence.valueOf(task.recurrence)
+                        )
+                        var fresh = api.edit("Bearer $token", task.id, request)
+                        if (fresh.completed != task.completed) {
+                            api.toggleComplete("Bearer $token", task.id)
+                            fresh = api.getById("Bearer $token", task.id)
+                        }
                         db.taskDao().upsert(fresh.toEntity())
                     } else {
                         db.taskDao().upsert(server.toEntity())
