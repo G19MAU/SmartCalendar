@@ -47,14 +47,16 @@ class TasksRepository(context: Context) {
 
     val tasks: Flow<List<TaskEntity>> = db.taskDao().getAll()
 
-    suspend fun refresh() {
-        val token = dataStore.getToken() ?: return
-        try {
+    suspend fun refresh(): Result<Unit> {
+        val token = dataStore.getToken() ?: return Result.failure(Exception("No token"))
+        return try {
             syncLocalChanges()
             val remote = api.getAll("Bearer $token")
             db.taskDao().clear()
             db.taskDao().insertAll(remote.map { it.toEntity() })
-        } catch (_: Exception) {
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

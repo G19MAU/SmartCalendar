@@ -32,6 +32,8 @@ fun TodoScreen(navController: NavController) {
         viewModel(factory = TasksViewModel.provideFactory(context))
 
     val tasks by viewModel.tasks.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
 
     var statusFilter by remember { mutableStateOf(StatusFilter.All) }
     var categoryFilter by remember { mutableStateOf<String?>(null) }
@@ -53,17 +55,25 @@ fun TodoScreen(navController: NavController) {
     val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val scope = rememberCoroutineScope()
 
-    var isRefreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullRefreshState(
-        refreshing = isRefreshing,
-        onRefresh = {
-            scope.launch {
-                isRefreshing = true
-                viewModel.refresh()
-                isRefreshing = false
-            }
-        }
+        refreshing = isLoading,
+        onRefresh = { viewModel.refresh() }
     )
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(error) {
+        error?.let {
+            val result = snackbarHostState.showSnackbar(
+                message = it.message ?: "Failed to load tasks",
+                actionLabel = "Retry"
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.refresh()
+            }
+            viewModel.clearError()
+        }
+    }
 
     ModalBottomSheetLayout(
         sheetState = sheetState,
@@ -125,7 +135,8 @@ fun TodoScreen(navController: NavController) {
                         }
                     }
                 )
-            }
+            },
+            snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { padding ->
             Box(
                 modifier = Modifier
@@ -147,10 +158,13 @@ fun TodoScreen(navController: NavController) {
                     }
                 }
                 PullRefreshIndicator(
-                    refreshing = isRefreshing,
+                    refreshing = isLoading,
                     state = pullRefreshState,
                     modifier = Modifier.align(Alignment.TopCenter)
                 )
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
             }
         }
     }

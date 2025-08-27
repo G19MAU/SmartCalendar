@@ -46,15 +46,17 @@ class ActivitiesRepository(context: Context) {
 
     val activities: Flow<List<ActivityEntity>> = db.activityDao().getAll()
 
-    suspend fun refresh() {
-        val token = dataStore.getToken() ?: return
-        try {
+    suspend fun refresh(): Result<Unit> {
+        val token = dataStore.getToken() ?: return Result.failure(Exception("No token"))
+        return try {
             syncLocalChanges()
             val remote = api.getOngoing("Bearer $token") + api.getFuture("Bearer $token")
             val expanded = remote.flatMap { it.expand() }
             db.activityDao().clear()
             db.activityDao().insertAll(expanded.map { it.toEntity() })
-        } catch (_: Exception) {
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

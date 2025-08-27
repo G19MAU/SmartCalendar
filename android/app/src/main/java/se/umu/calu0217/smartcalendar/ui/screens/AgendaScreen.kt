@@ -5,13 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -35,6 +30,10 @@ fun AgendaScreen(navController: NavController) {
 
     val activities by activitiesViewModel.activities.collectAsState()
     val tasks by tasksViewModel.tasks.collectAsState()
+    val activitiesLoading by activitiesViewModel.isLoading.collectAsState()
+    val tasksLoading by tasksViewModel.isLoading.collectAsState()
+    val activityError by activitiesViewModel.error.collectAsState()
+    val taskError by tasksViewModel.error.collectAsState()
 
     val today = LocalDate.now()
     val tomorrow = today.plusDays(1)
@@ -45,7 +44,27 @@ fun AgendaScreen(navController: NavController) {
     val todayTasks = remember(tasks) { tasks.filter { it.dueDate.toLocalDate() == today } }
     val tomorrowTasks = remember(tasks) { tasks.filter { it.dueDate.toLocalDate() == tomorrow } }
 
-    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(activityError, taskError) {
+        val err = activityError ?: taskError
+        if (err != null) {
+            val result = snackbarHostState.showSnackbar(
+                message = err.message ?: "Failed to load agenda",
+                actionLabel = "Retry"
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                activitiesViewModel.refresh()
+                tasksViewModel.refresh()
+            }
+            activitiesViewModel.clearError()
+            tasksViewModel.clearError()
+        }
+    }
+
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         item { Text("Today", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold) }
         items(todayActivities) { activity ->
             AgendaItemCard(
@@ -84,6 +103,11 @@ fun AgendaScreen(navController: NavController) {
                 color = task.category?.toColor() ?: Color.Gray,
                 onClick = { navController.navigate("task/${task.id}") }
             )
+        }
+            }
+            if (activitiesLoading || tasksLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
         }
     }
 }
