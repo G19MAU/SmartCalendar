@@ -1,5 +1,7 @@
 package se.umu.calu0217.smartcalendar.domain
 
+import java.time.LocalDateTime
+
 data class LoginRequest(
     val email: String,
     val password: String
@@ -28,8 +30,8 @@ data class DeleteAccountRequest(
 data class CreateActivityRequest(
     val title: String,
     val description: String?,
-    val startDate: String,
-    val endDate: String,
+    val startDate: LocalDateTime,
+    val endDate: LocalDateTime,
     val categoryId: Int
 )
 
@@ -37,8 +39,8 @@ data class ActivityDTO(
     val id: Int,
     val title: String,
     val description: String?,
-    val startDate: String,
-    val endDate: String,
+    val startDate: LocalDateTime,
+    val endDate: LocalDateTime,
     val category: String?
 )
 
@@ -56,7 +58,7 @@ data class CategoryDTO(
 data class CreateTaskRequest(
     val title: String,
     val description: String?,
-    val dueDate: String,
+    val dueDate: LocalDateTime,
     val categoryId: Int
 )
 
@@ -64,7 +66,7 @@ data class TaskDTO(
     val id: Int,
     val title: String,
     val description: String?,
-    val dueDate: String,
+    val dueDate: LocalDateTime,
     val completed: Boolean,
     val category: String?,
     val updatedAt: String?

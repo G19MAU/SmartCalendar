@@ -7,11 +7,13 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import kotlinx.coroutines.flow.Flow
+import com.squareup.moshi.Moshi
 import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import se.umu.calu0217.smartcalendar.data.TokenDataStore
 import se.umu.calu0217.smartcalendar.data.ReminderWorker
+import se.umu.calu0217.smartcalendar.data.LocalDateTimeAdapter
 import se.umu.calu0217.smartcalendar.data.api.TaskApi
 import se.umu.calu0217.smartcalendar.data.db.AppDatabase
 import se.umu.calu0217.smartcalendar.data.db.TaskEntity
@@ -32,9 +34,13 @@ class TasksRepository(context: Context) {
 
     private val workManager = WorkManager.getInstance(context)
 
+    private val moshi = Moshi.Builder()
+        .add(LocalDateTimeAdapter())
+        .build()
+
     private val api: TaskApi = Retrofit.Builder()
         .baseUrl("http://10.0.2.2:8080/api/")
-        .addConverterFactory(MoshiConverterFactory.create())
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
         .build()
         .create(TaskApi::class.java)
 
@@ -125,11 +131,13 @@ class TasksRepository(context: Context) {
         }
     }
 
+    private val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+
     private fun TaskDTO.toEntity() = TaskEntity(
         id = id,
         title = title,
         description = description,
-        dueDate = dueDate,
+        dueDate = dueDate.format(formatter),
         completed = completed,
         category = category,
         updatedAt = updatedAt,
@@ -137,14 +145,10 @@ class TasksRepository(context: Context) {
     )
 
     private fun schedule(task: TaskDTO) {
-        val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-        val trigger = try {
-            LocalDateTime.parse(task.dueDate, formatter)
-                .atZone(ZoneId.systemDefault())
-                .toInstant().toEpochMilli()
-        } catch (e: Exception) {
-            return
-        }
+        val trigger = task.dueDate
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
         val delay = trigger - System.currentTimeMillis()
         if (delay <= 0) {
             workManager.cancelUniqueWork("task-${task.id}")

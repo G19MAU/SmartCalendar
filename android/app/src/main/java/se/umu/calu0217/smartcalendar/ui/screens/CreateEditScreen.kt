@@ -2,6 +2,8 @@ package se.umu.calu0217.smartcalendar.ui.screens
 
 import android.Manifest
 import android.app.Activity
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -41,7 +43,9 @@ fun CreateEditScreen(navController: NavController, itemId: Int? = null) {
     var isEvent by remember { mutableStateOf(true) }
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var dateTime by remember { mutableStateOf(LocalDateTime.now()) }
+    var startDate by remember { mutableStateOf(LocalDateTime.now()) }
+    var endDate by remember { mutableStateOf(LocalDateTime.now()) }
+    var dueDate by remember { mutableStateOf(LocalDateTime.now()) }
     var categoryId by remember { mutableStateOf("") }
     var recurrence by remember { mutableStateOf("") }
     var coords by remember { mutableStateOf<Pair<Double, Double>?>(null) }
@@ -88,14 +92,13 @@ LaunchedEffect(Unit) {
     }
 
     fun save() {
-        val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
         scope.launch {
             if (isEvent) {
                 val request = CreateActivityRequest(
                     title = title,
                     description = description.ifBlank { null },
-                    startDate = dateTime.format(formatter),
-                    endDate = dateTime.format(formatter),
+                    startDate = startDate,
+                    endDate = endDate,
                     categoryId = categoryId.toIntOrNull() ?: 0
                 )
                 activitiesRepo.create(request)
@@ -103,7 +106,7 @@ LaunchedEffect(Unit) {
                 val request = CreateTaskRequest(
                     title = title,
                     description = description.ifBlank { null },
-                    dueDate = dateTime.format(formatter),
+                    dueDate = dueDate,
                     categoryId = categoryId.toIntOrNull() ?: 0
                 )
                 tasksRepo.create(request)
@@ -161,20 +164,64 @@ LaunchedEffect(Unit) {
                 }
             )
 
-            val formatted = remember(dateTime) {
-                dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
-            }
-            OutlinedTextField(
-                value = formatted,
-                onValueChange = {},
-                label = { Text("Date & Time") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        // Show date/time pickers elsewhere
+            fun pickDateTime(current: LocalDateTime, onSelected: (LocalDateTime) -> Unit) {
+                DatePickerDialog(
+                    context,
+                    { _, y, m, d ->
+                        TimePickerDialog(
+                            context,
+                            { _, h, min -> onSelected(LocalDateTime.of(y, m + 1, d, h, min)) },
+                            current.hour,
+                            current.minute,
+                            true
+                        ).show()
                     },
-                readOnly = true
-            )
+                    current.year,
+                    current.monthValue - 1,
+                    current.dayOfMonth
+                ).show()
+            }
+
+            if (isEvent) {
+                val formattedStart = remember(startDate) {
+                    startDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                }
+                OutlinedTextField(
+                    value = formattedStart,
+                    onValueChange = {},
+                    label = { Text("Start") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { pickDateTime(startDate) { startDate = it } },
+                    readOnly = true
+                )
+
+                val formattedEnd = remember(endDate) {
+                    endDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                }
+                OutlinedTextField(
+                    value = formattedEnd,
+                    onValueChange = {},
+                    label = { Text("End") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { pickDateTime(endDate) { endDate = it } },
+                    readOnly = true
+                )
+            } else {
+                val formattedDue = remember(dueDate) {
+                    dueDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                }
+                OutlinedTextField(
+                    value = formattedDue,
+                    onValueChange = {},
+                    label = { Text("Due Date & Time") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { pickDateTime(dueDate) { dueDate = it } },
+                    readOnly = true
+                )
+            }
 
             OutlinedTextField(
                 value = categoryId,
