@@ -27,6 +27,11 @@ import androidx.navigation.NavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
+import se.umu.calu0217.smartcalendar.data.ReminderWorker
+import java.util.concurrent.TimeUnit
 import se.umu.calu0217.smartcalendar.data.repository.ActivitiesRepository
 import se.umu.calu0217.smartcalendar.data.repository.TasksRepository
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -36,6 +41,7 @@ import se.umu.calu0217.smartcalendar.domain.CreateActivityRequest
 import se.umu.calu0217.smartcalendar.domain.CreateTaskRequest
 import se.umu.calu0217.smartcalendar.domain.Recurrence
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -162,6 +168,13 @@ LaunchedEffect(Unit) {
                     tasksRepo.create(request)
                 }
             }
+            val data = workDataOf("title" to title)
+            val delay = computeDelayFrom(if (isEvent) startDate else dueDate)
+            val request = OneTimeWorkRequestBuilder<ReminderWorker>()
+                .setInputData(data)
+                .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                .build()
+            WorkManager.getInstance(context).enqueue(request)
             navController.popBackStack()
         }
     }
@@ -396,5 +409,14 @@ LaunchedEffect(Unit) {
             }
         }
     }
+}
+
+private fun computeDelayFrom(dateTime: LocalDateTime): Long {
+    val trigger = dateTime
+        .atZone(ZoneId.systemDefault())
+        .toInstant()
+        .toEpochMilli()
+    val delay = trigger - System.currentTimeMillis()
+    return if (delay > 0) delay else 0
 }
 
