@@ -1,6 +1,5 @@
 package se.umu.calu0217.smartcalendar
 
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -10,9 +9,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import se.umu.calu0217.smartcalendar.data.repository.AuthRepository
 import se.umu.calu0217.smartcalendar.data.repository.UserRepository
 import se.umu.calu0217.smartcalendar.ui.components.BottomNavBar
@@ -66,7 +67,22 @@ fun SmartCalendarApp() {
                         }
                     }
                 }
-                composable("edit") { Text("Create/Edit") }
+                composable("edit") {
+                    CreateEditScreen(navController)
+                }
+                composable(
+                    route = "edit?itemId={itemId}",
+                    arguments = listOf(
+                        navArgument("itemId") {
+                            type = NavType.IntType
+                            defaultValue = -1
+                        }
+                    )
+                ) { backStackEntry ->
+                    val id = backStackEntry.arguments?.getInt("itemId")
+                    val itemId = id.takeIf { it != -1 }
+                    CreateEditScreen(navController, itemId)
+                }
             }
         }
     }
