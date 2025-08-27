@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -47,18 +48,18 @@ fun CreateEditScreen(navController: NavController, itemId: Int? = null, type: St
     val categories by categoriesViewModel.categories.collectAsState()
 
     val isEvent = type != "task"
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var startDate by remember { mutableStateOf(LocalDateTime.now()) }
-    var endDate by remember { mutableStateOf(LocalDateTime.now()) }
-    var dueDate by remember { mutableStateOf(LocalDateTime.now()) }
-    var selectedCategory by remember { mutableStateOf<CategoryEntity?>(null) }
-    var categoryExpanded by remember { mutableStateOf(false) }
-    var showCategoryDialog by remember { mutableStateOf(false) }
-    var newCategoryName by remember { mutableStateOf("") }
-    var recurrence by remember { mutableStateOf(Recurrence.NONE) }
-    var recurrenceExpanded by remember { mutableStateOf(false) }
-    var coords by remember { mutableStateOf<Pair<Double, Double>?>(null) }
+    var title by rememberSaveable { mutableStateOf("") }
+    var description by rememberSaveable { mutableStateOf("") }
+    var startDate by rememberSaveable { mutableStateOf(LocalDateTime.now()) }
+    var endDate by rememberSaveable { mutableStateOf(LocalDateTime.now()) }
+    var dueDate by rememberSaveable { mutableStateOf(LocalDateTime.now()) }
+    var selectedCategory by rememberSaveable { mutableStateOf<CategoryEntity?>(null) }
+    var categoryExpanded by rememberSaveable { mutableStateOf(false) }
+    var showCategoryDialog by rememberSaveable { mutableStateOf(false) }
+    var newCategoryName by rememberSaveable { mutableStateOf("") }
+    var recurrence by rememberSaveable { mutableStateOf(Recurrence.NONE) }
+    var recurrenceExpanded by rememberSaveable { mutableStateOf(false) }
+    var coords by rememberSaveable { mutableStateOf<Pair<Double, Double>?>(null) }
 
     val fusedLocation: FusedLocationProviderClient = remember {
         LocationServices.getFusedLocationProviderClient(context)
