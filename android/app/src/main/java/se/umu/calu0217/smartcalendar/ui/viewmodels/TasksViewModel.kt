@@ -27,6 +27,10 @@ class TasksViewModel(private val repository: TasksRepository) : ViewModel() {
         viewModelScope.launch { repository.toggleComplete(id) }
     }
 
+    fun refresh() {
+        viewModelScope.launch { repository.refresh() }
+    }
+
     companion object {
         fun provideFactory(context: Context): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {

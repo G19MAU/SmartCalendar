@@ -7,6 +7,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import kotlinx.coroutines.flow.Flow
+import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import se.umu.calu0217.smartcalendar.data.TokenDataStore
@@ -27,7 +28,7 @@ class TasksRepository(context: Context) {
         context,
         AppDatabase::class.java,
         "smartcalendar-db"
-    ).build()
+    ).fallbackToDestructiveMigration().build()
 
     private val workManager = WorkManager.getInstance(context)
 
@@ -42,6 +43,7 @@ class TasksRepository(context: Context) {
     suspend fun refresh() {
         val token = dataStore.getToken() ?: return
         try {
+            syncLocalChanges()
             val remote = api.getAll("Bearer $token")
             db.taskDao().clear()
             db.taskDao().insertAll(remote.map { it.toEntity() })
@@ -85,6 +87,41 @@ class TasksRepository(context: Context) {
             api.toggleComplete("Bearer $token", id)
             refresh()
         } catch (_: Exception) {
+            val local = db.taskDao().getById(id) ?: return
+            val now = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            db.taskDao().upsert(
+                local.copy(
+                    completed = !local.completed,
+                    dirty = true,
+                    updatedAt = now
+                )
+            )
+        }
+    }
+
+    private suspend fun syncLocalChanges() {
+        val token = dataStore.getToken() ?: return
+        val dirty = db.taskDao().getDirty()
+        for (task in dirty) {
+            try {
+                api.toggleComplete("Bearer $token", task.id)
+                val fresh = api.getById("Bearer $token", task.id)
+                db.taskDao().upsert(fresh.toEntity())
+            } catch (e: HttpException) {
+                if (e.code() == 409) {
+                    val server = api.getById("Bearer $token", task.id)
+                    val localTime = task.updatedAt ?: ""
+                    val serverTime = server.updatedAt ?: ""
+                    if (localTime > serverTime) {
+                        api.toggleComplete("Bearer $token", task.id)
+                        val fresh = api.getById("Bearer $token", task.id)
+                        db.taskDao().upsert(fresh.toEntity())
+                    } else {
+                        db.taskDao().upsert(server.toEntity())
+                    }
+                }
+            } catch (_: Exception) {
+            }
         }
     }
 
@@ -94,7 +131,9 @@ class TasksRepository(context: Context) {
         description = description,
         dueDate = dueDate,
         completed = completed,
-        category = category
+        category = category,
+        updatedAt = updatedAt,
+        dirty = false
     )
 
     private fun schedule(task: TaskDTO) {

@@ -11,8 +11,17 @@ interface TaskDao {
     @Query("SELECT * FROM tasks")
     fun getAll(): Flow<List<TaskEntity>>
 
+    @Query("SELECT * FROM tasks WHERE id = :id LIMIT 1")
+    suspend fun getById(id: Int): TaskEntity?
+
+    @Query("SELECT * FROM tasks WHERE dirty = 1")
+    suspend fun getDirty(): List<TaskEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(values: List<TaskEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(value: TaskEntity)
 
     @Query("DELETE FROM tasks")
     suspend fun clear()

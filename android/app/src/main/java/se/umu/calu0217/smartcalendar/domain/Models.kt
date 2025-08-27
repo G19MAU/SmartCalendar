@@ -66,7 +66,8 @@ data class TaskDTO(
     val description: String?,
     val dueDate: String,
     val completed: Boolean,
-    val category: String?
+    val category: String?,
+    val updatedAt: String?
 )
 
 data class ConvertTaskRequest(
