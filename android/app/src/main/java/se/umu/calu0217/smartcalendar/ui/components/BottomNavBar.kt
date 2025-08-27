@@ -63,7 +63,7 @@ fun BottomNavBar(
             }
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { navController.navigate("edit") }) {
+            FloatingActionButton(onClick = { navController.navigate("edit?type=event") }) {
                 Icon(Icons.Filled.Add, contentDescription = null)
             }
         },

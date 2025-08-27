@@ -47,6 +47,8 @@ class TasksRepository(context: Context) {
 
     val tasks: Flow<List<TaskEntity>> = db.taskDao().getAll()
 
+    suspend fun getById(id: Int): TaskEntity? = db.taskDao().getById(id)
+
     suspend fun refresh(): Result<Unit> {
         val token = dataStore.getToken() ?: return Result.failure(Exception("No token"))
         return try {

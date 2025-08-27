@@ -69,21 +69,22 @@ fun SmartCalendarApp() {
                         }
                     }
                 }
-                composable("edit") {
-                    CreateEditScreen(navController)
-                }
                 composable(
-                    route = "edit?itemId={itemId}",
+                    route = "edit?itemId={itemId}&type={type}",
                     arguments = listOf(
                         navArgument("itemId") {
                             type = NavType.IntType
                             defaultValue = -1
+                        },
+                        navArgument("type") {
+                            type = NavType.StringType
+                            defaultValue = "event"
                         }
                     )
                 ) { backStackEntry ->
-                    val id = backStackEntry.arguments?.getInt("itemId")
-                    val itemId = id.takeIf { it != -1 }
-                    CreateEditScreen(navController, itemId)
+                    val id = backStackEntry.arguments?.getInt("itemId")?.takeIf { it != -1 }
+                    val type = backStackEntry.arguments?.getString("type") ?: "event"
+                    CreateEditScreen(navController, id, type)
                 }
                 composable(
                     route = "activity/{activityId}",

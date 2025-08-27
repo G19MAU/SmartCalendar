@@ -39,14 +39,14 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @Composable
-fun CreateEditScreen(navController: NavController, itemId: Int? = null) {
+fun CreateEditScreen(navController: NavController, itemId: Int? = null, type: String = "event") {
     val context = LocalContext.current
     val activitiesRepo = remember { ActivitiesRepository(context) }
     val tasksRepo = remember { TasksRepository(context) }
     val categoriesViewModel: CategoriesViewModel = viewModel(factory = CategoriesViewModel.provideFactory(context))
     val categories by categoriesViewModel.categories.collectAsState()
 
-    var isEvent by remember { mutableStateOf(true) }
+    val isEvent = type != "task"
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var startDate by remember { mutableStateOf(LocalDateTime.now()) }
@@ -65,6 +65,33 @@ fun CreateEditScreen(navController: NavController, itemId: Int? = null) {
     }
 
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(itemId, categories) {
+        if (itemId != null) {
+            if (isEvent) {
+                activitiesRepo.getById(itemId)?.let { activity ->
+                    title = activity.title
+                    description = activity.description ?: ""
+                    startDate = LocalDateTime.parse(activity.startDate)
+                    endDate = LocalDateTime.parse(activity.endDate)
+                    activity.location?.split(",")?.map { it.toDouble() }
+                        ?.let { coords = it[0] to it[1] }
+                    selectedCategory = categories.firstOrNull { it.name == activity.category }
+                    recurrence = Recurrence.valueOf(activity.recurrence)
+                }
+            } else {
+                tasksRepo.getById(itemId)?.let { task ->
+                    title = task.title
+                    description = task.description ?: ""
+                    dueDate = LocalDateTime.parse(task.dueDate)
+                    task.location?.split(",")?.map { it.toDouble() }
+                        ?.let { coords = it[0] to it[1] }
+                    selectedCategory = categories.firstOrNull { it.name == task.category }
+                    recurrence = Recurrence.valueOf(task.recurrence)
+                }
+            }
+        }
+    }
 
     var speechTarget by remember { mutableStateOf<(String) -> Unit>({}) }
     val speechLauncher = rememberLauncherForActivityResult(
@@ -114,7 +141,11 @@ LaunchedEffect(Unit) {
                     categoryId = selectedCategory?.id ?: 0,
                     recurrence = recurrence
                 )
-                activitiesRepo.create(request)
+                if (itemId != null) {
+                    activitiesRepo.edit(itemId, request)
+                } else {
+                    activitiesRepo.create(request)
+                }
             } else {
                 val request = CreateTaskRequest(
                     title = title,
@@ -124,7 +155,11 @@ LaunchedEffect(Unit) {
                     categoryId = selectedCategory?.id ?: 0,
                     recurrence = recurrence
                 )
-                tasksRepo.create(request)
+                if (itemId != null) {
+                    tasksRepo.edit(itemId, request)
+                } else {
+                    tasksRepo.create(request)
+                }
             }
             navController.popBackStack()
         }
@@ -132,7 +167,18 @@ LaunchedEffect(Unit) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(if (isEvent) "Create Event" else "Create Task") })
+            TopAppBar(
+                title = {
+                    Text(
+                        when {
+                            itemId != null && isEvent -> "Edit Event"
+                            itemId != null && !isEvent -> "Edit Task"
+                            isEvent -> "Create Event"
+                            else -> "Create Task"
+                        }
+                    )
+                }
+            )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { save() }) { Text("Save") }
@@ -145,12 +191,6 @@ LaunchedEffect(Unit) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Event")
-                Switch(checked = isEvent, onCheckedChange = { isEvent = it })
-                Text("Task")
-            }
-
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
