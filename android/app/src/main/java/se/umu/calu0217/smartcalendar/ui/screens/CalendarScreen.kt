@@ -2,10 +2,12 @@ package se.umu.calu0217.smartcalendar.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -18,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import se.umu.calu0217.smartcalendar.data.db.ActivityEntity
 import se.umu.calu0217.smartcalendar.ui.viewmodels.ActivitiesViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -33,8 +36,10 @@ fun CalendarScreen() {
     var scale by remember { mutableStateOf(1f) }
     var level by remember { mutableStateOf(ZoomLevel.MONTH) }
 
-    val today = remember { LocalDate.now() }
-    val todayActivities = remember(activities) { activities.filter { it.startDate.toLocalDate() == today } }
+    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    val selectedActivities = remember(activities, selectedDate) {
+        activities.filter { it.startDate.toLocalDate() == selectedDate }
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -61,21 +66,27 @@ fun CalendarScreen() {
                 .padding(4.dp)
         ) {
             when (level) {
-                ZoomLevel.MONTH -> MonthView(today)
-                ZoomLevel.WEEK -> WeekView(today)
-                ZoomLevel.DAY -> DayView(today)
+                ZoomLevel.MONTH -> MonthView(selectedDate, activities) {
+                    selectedDate = it
+                    level = ZoomLevel.DAY
+                }
+                ZoomLevel.WEEK -> WeekView(selectedDate, activities) {
+                    selectedDate = it
+                    level = ZoomLevel.DAY
+                }
+                ZoomLevel.DAY -> DayView(selectedDate, activities)
             }
         }
 
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
         Text(
-            text = "Today's Agenda",
+            text = "Agenda for $selectedDate",
             style = MaterialTheme.typography.h6,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
         LazyColumn(modifier = Modifier.padding(16.dp)) {
-            items(todayActivities) { activity ->
+            items(selectedActivities) { activity ->
                 Text(
                     text = "${activity.startDate.toLocalTime()} - ${activity.title}",
                     style = MaterialTheme.typography.body1,
@@ -89,7 +100,7 @@ fun CalendarScreen() {
 enum class ZoomLevel { MONTH, WEEK, DAY }
 
 @Composable
-private fun MonthView(current: LocalDate) {
+private fun MonthView(current: LocalDate, activities: List<ActivityEntity>, onDayClick: (LocalDate) -> Unit) {
     val firstOfMonth = current.withDayOfMonth(1)
     val firstDayOfWeek = firstOfMonth.dayOfWeek.ordinal // Monday = 0
     val daysInMonth = current.lengthOfMonth()
@@ -110,7 +121,12 @@ private fun MonthView(current: LocalDate) {
         days.chunked(7).forEach { week ->
             Row(modifier = Modifier.weight(1f)) {
                 week.forEach { day ->
-                    DayCell(day, modifier = Modifier.weight(1f))
+                    DayCell(
+                        day,
+                        activities,
+                        modifier = Modifier.weight(1f),
+                        onClick = onDayClick
+                    )
                 }
             }
         }
@@ -118,31 +134,43 @@ private fun MonthView(current: LocalDate) {
 }
 
 @Composable
-private fun WeekView(current: LocalDate) {
+private fun WeekView(current: LocalDate, activities: List<ActivityEntity>, onDayClick: (LocalDate) -> Unit) {
     val startOfWeek = current.with(DayOfWeek.MONDAY)
     Row(modifier = Modifier.fillMaxSize()) {
         for (i in 0 until 7) {
-            DayCell(startOfWeek.plusDays(i.toLong()), modifier = Modifier.weight(1f))
+            val day = startOfWeek.plusDays(i.toLong())
+            Column(modifier = Modifier.weight(1f)) {
+                DayCell(day, activities, modifier = Modifier.fillMaxWidth(), onClick = onDayClick)
+                DayTimeline(day, activities, modifier = Modifier.weight(1f))
+            }
         }
     }
 }
 
 @Composable
-private fun DayView(current: LocalDate) {
+private fun DayView(current: LocalDate, activities: List<ActivityEntity>) {
     Column(modifier = Modifier.fillMaxSize()) {
-        DayCell(current, modifier = Modifier.fillMaxWidth().weight(1f))
+        DayCell(current, activities, modifier = Modifier.fillMaxWidth())
+        DayTimeline(current, activities, modifier = Modifier.weight(1f))
     }
 }
 
 @Composable
-private fun DayCell(date: LocalDate, modifier: Modifier = Modifier) {
+private fun DayCell(
+    date: LocalDate,
+    activities: List<ActivityEntity>,
+    modifier: Modifier = Modifier,
+    onClick: (LocalDate) -> Unit = {}
+) {
     val isToday = date == LocalDate.now()
+    val count = remember(activities, date) { activities.count { it.startDate.toLocalDate() == date } }
     Box(
         modifier = modifier
             .aspectRatio(1f)
             .padding(2.dp)
             .border(1.dp, Color.LightGray)
-            .background(if (isToday) MaterialTheme.colors.primary.copy(alpha = 0.3f) else Color.Transparent),
+            .background(if (isToday) MaterialTheme.colors.primary.copy(alpha = 0.3f) else Color.Transparent)
+            .clickable { onClick(date) },
         contentAlignment = Alignment.TopEnd
     ) {
         Text(
@@ -151,6 +179,36 @@ private fun DayCell(date: LocalDate, modifier: Modifier = Modifier) {
             modifier = Modifier.padding(4.dp),
             fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
         )
+
+        if (count > 0) {
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .align(Alignment.BottomCenter)
+                    .background(MaterialTheme.colors.secondary, CircleShape)
+            )
+        }
+    }
+}
+
+@Composable
+private fun DayTimeline(day: LocalDate, activities: List<ActivityEntity>, modifier: Modifier = Modifier) {
+    val dayActivities = remember(activities, day) { activities.filter { it.startDate.toLocalDate() == day } }
+    LazyColumn(modifier = modifier.fillMaxSize()) {
+        items(24) { hour ->
+            val hourActivities = dayActivities.filter { LocalDateTime.parse(it.startDate).hour == hour }
+            Row(modifier = Modifier.fillMaxWidth().height(40.dp)) {
+                Text(
+                    text = String.format("%02d:00", hour),
+                    modifier = Modifier.width(40.dp)
+                )
+                Column {
+                    hourActivities.forEach { activity ->
+                        Text(activity.title, style = MaterialTheme.typography.caption)
+                    }
+                }
+            }
+        }
     }
 }
 
