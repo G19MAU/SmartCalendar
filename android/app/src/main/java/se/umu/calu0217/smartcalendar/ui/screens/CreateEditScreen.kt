@@ -28,6 +28,9 @@ import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
 import se.umu.calu0217.smartcalendar.data.repository.ActivitiesRepository
 import se.umu.calu0217.smartcalendar.data.repository.TasksRepository
+import androidx.lifecycle.viewmodel.compose.viewModel
+import se.umu.calu0217.smartcalendar.data.db.CategoryEntity
+import se.umu.calu0217.smartcalendar.ui.viewmodels.CategoriesViewModel
 import se.umu.calu0217.smartcalendar.domain.CreateActivityRequest
 import se.umu.calu0217.smartcalendar.domain.CreateTaskRequest
 import se.umu.calu0217.smartcalendar.domain.Recurrence
@@ -40,6 +43,8 @@ fun CreateEditScreen(navController: NavController, itemId: Int? = null) {
     val context = LocalContext.current
     val activitiesRepo = remember { ActivitiesRepository(context) }
     val tasksRepo = remember { TasksRepository(context) }
+    val categoriesViewModel: CategoriesViewModel = viewModel(factory = CategoriesViewModel.provideFactory(context))
+    val categories by categoriesViewModel.categories.collectAsState()
 
     var isEvent by remember { mutableStateOf(true) }
     var title by remember { mutableStateOf("") }
@@ -47,7 +52,10 @@ fun CreateEditScreen(navController: NavController, itemId: Int? = null) {
     var startDate by remember { mutableStateOf(LocalDateTime.now()) }
     var endDate by remember { mutableStateOf(LocalDateTime.now()) }
     var dueDate by remember { mutableStateOf(LocalDateTime.now()) }
-    var categoryId by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf<CategoryEntity?>(null) }
+    var categoryExpanded by remember { mutableStateOf(false) }
+    var showCategoryDialog by remember { mutableStateOf(false) }
+    var newCategoryName by remember { mutableStateOf("") }
     var recurrence by remember { mutableStateOf(Recurrence.NONE) }
     var recurrenceExpanded by remember { mutableStateOf(false) }
     var coords by remember { mutableStateOf<Pair<Double, Double>?>(null) }
@@ -103,7 +111,7 @@ LaunchedEffect(Unit) {
                     location = coords?.let { "${it.first},${it.second}" },
                     startDate = startDate,
                     endDate = endDate,
-                    categoryId = categoryId.toIntOrNull() ?: 0,
+                    categoryId = selectedCategory?.id ?: 0,
                     recurrence = recurrence
                 )
                 activitiesRepo.create(request)
@@ -113,7 +121,7 @@ LaunchedEffect(Unit) {
                     description = description.ifBlank { null },
                     location = coords?.let { "${it.first},${it.second}" },
                     dueDate = dueDate,
-                    categoryId = categoryId.toIntOrNull() ?: 0,
+                    categoryId = selectedCategory?.id ?: 0,
                     recurrence = recurrence
                 )
                 tasksRepo.create(request)
@@ -246,12 +254,61 @@ LaunchedEffect(Unit) {
                 )
             }
 
-            OutlinedTextField(
-                value = categoryId,
-                onValueChange = { categoryId = it },
-                label = { Text("Category ID") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            Box {
+                OutlinedTextField(
+                    value = selectedCategory?.name ?: "",
+                    onValueChange = {},
+                    label = { Text("Category") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { categoryExpanded = true },
+                    readOnly = true
+                )
+                DropdownMenu(
+                    expanded = categoryExpanded,
+                    onDismissRequest = { categoryExpanded = false }
+                ) {
+                    categories.forEach { category ->
+                        DropdownMenuItem(onClick = {
+                            selectedCategory = category
+                            categoryExpanded = false
+                        }) {
+                            Text(category.name)
+                        }
+                    }
+                    Divider()
+                    DropdownMenuItem(onClick = {
+                        categoryExpanded = false
+                        showCategoryDialog = true
+                    }) {
+                        Text("Add Category")
+                    }
+                }
+            }
+
+            if (showCategoryDialog) {
+                AlertDialog(
+                    onDismissRequest = { showCategoryDialog = false },
+                    title = { Text("New Category") },
+                    text = {
+                        OutlinedTextField(
+                            value = newCategoryName,
+                            onValueChange = { newCategoryName = it },
+                            label = { Text("Name") }
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            categoriesViewModel.create(newCategoryName, null)
+                            newCategoryName = ""
+                            showCategoryDialog = false
+                        }) { Text("Create") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showCategoryDialog = false }) { Text("Cancel") }
+                    }
+                )
+            }
 
             Box {
                 OutlinedTextField(
