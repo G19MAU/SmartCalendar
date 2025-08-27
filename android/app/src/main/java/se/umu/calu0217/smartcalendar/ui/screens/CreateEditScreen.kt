@@ -2,7 +2,6 @@ package se.umu.calu0217.smartcalendar.ui.screens
 
 import android.Manifest
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -21,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.navigation.NavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
@@ -33,7 +33,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @Composable
-fun CreateEditScreen() {
+fun CreateEditScreen(navController: NavController, itemId: Int? = null) {
     val context = LocalContext.current
     val activitiesRepo = remember { ActivitiesRepository(context) }
     val tasksRepo = remember { TasksRepository(context) }
@@ -108,6 +108,7 @@ LaunchedEffect(Unit) {
                 )
                 tasksRepo.create(request)
             }
+            navController.popBackStack()
         }
     }
 

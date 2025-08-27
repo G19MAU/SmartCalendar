@@ -64,7 +64,7 @@ fun BottomNavBar(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { navController.navigate("edit") }) {
-                Icon(Icons.Filled.Add, contentDescription = "Create/Edit")
+                Icon(Icons.Filled.Add, contentDescription = null)
             }
         },
         floatingActionButtonPosition = FabPosition.Center,
