@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,9 +35,9 @@ fun CalendarScreen() {
     val error by activitiesViewModel.error.collectAsState()
 
     var scale by remember { mutableStateOf(1f) }
-    var level by remember { mutableStateOf(ZoomLevel.MONTH) }
+    var level by rememberSaveable { mutableStateOf(ZoomLevel.MONTH) }
 
-    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    var selectedDate by rememberSaveable { mutableStateOf(LocalDate.now()) }
     val selectedActivities = remember(activities, selectedDate) {
         activities.filter { it.startDate.toLocalDate() == selectedDate }
     }
