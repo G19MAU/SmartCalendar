@@ -71,7 +71,7 @@ fun TaskDetailScreen(navController: NavController, taskId: Int) {
         Text("Category: ${task.category ?: "None"}")
         Spacer(modifier = Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { navController.navigate("edit?itemId=${task.id}") }) {
+            Button(onClick = { navController.navigate("edit?itemId=${task.id}&type=task") }) {
                 Text("Edit")
             }
             Button(

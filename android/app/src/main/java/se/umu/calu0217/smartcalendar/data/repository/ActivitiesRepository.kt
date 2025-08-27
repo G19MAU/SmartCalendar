@@ -46,6 +46,8 @@ class ActivitiesRepository(context: Context) {
 
     val activities: Flow<List<ActivityEntity>> = db.activityDao().getAll()
 
+    suspend fun getById(id: Int): ActivityEntity? = db.activityDao().getById(id)
+
     suspend fun refresh(): Result<Unit> {
         val token = dataStore.getToken() ?: return Result.failure(Exception("No token"))
         return try {

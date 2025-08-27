@@ -73,7 +73,7 @@ fun ActivityDetailScreen(navController: NavController, activityId: Int) {
         Text("Category: ${activity.category ?: "None"}")
         Spacer(modifier = Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { navController.navigate("edit?itemId=${activity.id}") }) {
+            Button(onClick = { navController.navigate("edit?itemId=${activity.id}&type=event") }) {
                 Text("Edit")
             }
             Button(
