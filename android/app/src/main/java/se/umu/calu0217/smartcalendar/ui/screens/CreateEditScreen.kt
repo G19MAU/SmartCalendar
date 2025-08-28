@@ -12,7 +12,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Mic
@@ -324,20 +324,22 @@ LaunchedEffect(Unit) {
                     onDismissRequest = { categoryExpanded = false }
                 ) {
                     categories.forEach { category ->
-                        DropdownMenuItem(onClick = {
-                            selectedCategory = category
-                            categoryExpanded = false
-                        }) {
-                            Text(category.name)
-                        }
+                        DropdownMenuItem(
+                            text = { Text(category.name) },
+                            onClick = {
+                                selectedCategory = category
+                                categoryExpanded = false
+                            }
+                        )
                     }
                     Divider()
-                    DropdownMenuItem(onClick = {
-                        categoryExpanded = false
-                        showCategoryDialog = true
-                    }) {
-                        Text("Add Category")
-                    }
+                    DropdownMenuItem(
+                        text = { Text("Add Category") },
+                        onClick = {
+                            categoryExpanded = false
+                            showCategoryDialog = true
+                        }
+                    )
                 }
             }
 
@@ -380,12 +382,13 @@ LaunchedEffect(Unit) {
                     onDismissRequest = { recurrenceExpanded = false }
                 ) {
                     Recurrence.values().forEach { option ->
-                        DropdownMenuItem(onClick = {
-                            recurrence = option
-                            recurrenceExpanded = false
-                        }) {
-                            Text(option.name)
-                        }
+                        DropdownMenuItem(
+                            text = { Text(option.name) },
+                            onClick = {
+                                recurrence = option
+                                recurrenceExpanded = false
+                            }
+                        )
                     }
                 }
             }

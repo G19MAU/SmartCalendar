@@ -5,7 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -65,7 +65,7 @@ fun AgendaScreen(navController: NavController) {
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        item { Text("Today", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold) }
+        item { Text("Today", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold) }
         items(todayActivities) { activity ->
             AgendaItemCard(
                 title = activity.title,
@@ -85,7 +85,7 @@ fun AgendaScreen(navController: NavController) {
             )
         }
         item { Spacer(modifier = Modifier.height(24.dp)) }
-        item { Text("Tomorrow", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold) }
+        item { Text("Tomorrow", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold) }
         items(tomorrowActivities) { activity ->
             AgendaItemCard(
                 title = activity.title,
@@ -128,11 +128,11 @@ private fun AgendaItemCard(
         border = BorderStroke(2.dp, color)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(title, style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.SemiBold)
-            Text(time, style = MaterialTheme.typography.body2)
+            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(time, style = MaterialTheme.typography.bodyMedium)
             if (!description.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(description, style = MaterialTheme.typography.body2)
+                Text(description, style = MaterialTheme.typography.bodyMedium)
             }
         }
     }
