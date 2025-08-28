@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
     kotlin("kapt")
     alias(libs.plugins.hilt.android)
 }
@@ -42,8 +41,10 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.14"
     }
+
+    android.buildFeatures.buildConfig = true
 }
 
 dependencies {
@@ -55,7 +56,6 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.material.pullrefresh)
     implementation(libs.androidx.material.icons.extended)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.navigation.compose)

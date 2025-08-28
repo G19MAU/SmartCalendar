@@ -103,11 +103,3 @@ fun SmartCalendarApp(
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    // Preview with dummy repositories
-    val context = androidx.compose.ui.platform.LocalContext.current
-    SmartCalendarApp(AuthRepository(context), UserRepository(context))
-}
