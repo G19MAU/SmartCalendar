@@ -32,9 +32,10 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import se.umu.calu0217.smartcalendar.data.ReminderWorker
 import java.util.concurrent.TimeUnit
-import se.umu.calu0217.smartcalendar.data.repository.ActivitiesRepository
 import se.umu.calu0217.smartcalendar.data.repository.TasksRepository
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import se.umu.calu0217.smartcalendar.ui.viewmodels.ActivitiesViewModel
 import se.umu.calu0217.smartcalendar.data.db.CategoryEntity
 import se.umu.calu0217.smartcalendar.ui.viewmodels.CategoriesViewModel
 import se.umu.calu0217.smartcalendar.domain.CreateActivityRequest
@@ -48,7 +49,7 @@ import java.util.Locale
 @Composable
 fun CreateEditScreen(navController: NavController, itemId: Int? = null, type: String = "event") {
     val context = LocalContext.current
-    val activitiesRepo = remember { ActivitiesRepository(context) }
+    val activitiesViewModel: ActivitiesViewModel = hiltViewModel()
     val tasksRepo = remember { TasksRepository(context) }
     val categoriesViewModel: CategoriesViewModel = viewModel(factory = CategoriesViewModel.provideFactory(context))
     val categories by categoriesViewModel.categories.collectAsState()
@@ -76,7 +77,7 @@ fun CreateEditScreen(navController: NavController, itemId: Int? = null, type: St
     LaunchedEffect(itemId, categories) {
         if (itemId != null) {
             if (isEvent) {
-                activitiesRepo.getById(itemId)?.let { activity ->
+                activitiesViewModel.getById(itemId)?.let { activity ->
                     title = activity.title
                     description = activity.description ?: ""
                     startDate = LocalDateTime.parse(activity.startDate)
@@ -149,9 +150,9 @@ LaunchedEffect(Unit) {
                     recurrence = recurrence
                 )
                 if (itemId != null) {
-                    activitiesRepo.edit(itemId, request)
+                    activitiesViewModel.edit(itemId, request)
                 } else {
-                    activitiesRepo.create(request)
+                    activitiesViewModel.create(request)
                 }
             } else {
                 val request = CreateTaskRequest(

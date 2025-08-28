@@ -21,11 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
-import se.umu.calu0217.smartcalendar.data.repository.ActivitiesRepository
 import se.umu.calu0217.smartcalendar.ui.viewmodels.ActivitiesViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -33,11 +32,9 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun ActivityDetailScreen(navController: NavController, activityId: Int) {
     val context = LocalContext.current
-    val viewModel: ActivitiesViewModel =
-        viewModel(factory = ActivitiesViewModel.provideFactory(context))
+    val viewModel: ActivitiesViewModel = hiltViewModel()
     val activities by viewModel.activities.collectAsState()
     val activity = activities.firstOrNull { it.id == activityId }
-    val repo = remember { ActivitiesRepository(context) }
     val scope = rememberCoroutineScope()
 
     if (activity == null) {
@@ -79,7 +76,7 @@ fun ActivityDetailScreen(navController: NavController, activityId: Int) {
             Button(
                 onClick = {
                     scope.launch {
-                        repo.delete(activity.id)
+                        viewModel.delete(activity.id)
                         navController.popBackStack()
                     }
                 }
