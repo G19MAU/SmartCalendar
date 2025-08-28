@@ -7,14 +7,10 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import kotlinx.coroutines.flow.Flow
-import com.squareup.moshi.Moshi
 import retrofit2.HttpException
 import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
-import se.umu.calu0217.smartcalendar.BuildConfig
 import se.umu.calu0217.smartcalendar.data.TokenDataStore
 import se.umu.calu0217.smartcalendar.data.ReminderWorker
-import se.umu.calu0217.smartcalendar.data.LocalDateTimeAdapter
 import se.umu.calu0217.smartcalendar.data.api.ActivityApi
 import se.umu.calu0217.smartcalendar.data.db.ActivityEntity
 import se.umu.calu0217.smartcalendar.data.db.AppDatabase
@@ -24,8 +20,13 @@ import se.umu.calu0217.smartcalendar.domain.Recurrence
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 
-class ActivitiesRepository(context: Context) {
+class ActivitiesRepository @Inject constructor(
+    @ApplicationContext context: Context,
+    retrofit: Retrofit
+) {
     private val dataStore = TokenDataStore(context)
     private val db: AppDatabase = Room.databaseBuilder(
         context,
@@ -35,15 +36,7 @@ class ActivitiesRepository(context: Context) {
 
     private val workManager = WorkManager.getInstance(context)
 
-    private val moshi = Moshi.Builder()
-        .add(LocalDateTimeAdapter())
-        .build()
-
-    private val api: ActivityApi = Retrofit.Builder()
-        .baseUrl(BuildConfig.BASE_URL)
-        .addConverterFactory(MoshiConverterFactory.create(moshi))
-        .build()
-        .create(ActivityApi::class.java)
+    private val api: ActivityApi = retrofit.create(ActivityApi::class.java)
 
     val activities: Flow<List<ActivityEntity>> = db.activityDao().getAll()
 
