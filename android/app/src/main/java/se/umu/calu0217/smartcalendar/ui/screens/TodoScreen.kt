@@ -5,9 +5,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.*
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,15 +20,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import se.umu.calu0217.smartcalendar.data.db.TaskEntity
 import se.umu.calu0217.smartcalendar.ui.viewmodels.TasksViewModel
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.navigation.NavController
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun TodoScreen(navController: NavController) {
     val context = LocalContext.current
@@ -52,7 +53,8 @@ fun TodoScreen(navController: NavController) {
         }
     }
 
-    val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showSheet by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     val pullRefreshState = rememberPullRefreshState(
@@ -75,9 +77,11 @@ fun TodoScreen(navController: NavController) {
         }
     }
 
-    ModalBottomSheetLayout(
-        sheetState = sheetState,
-        sheetContent = {
+    if (showSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSheet = false },
+            sheetState = sheetState
+        ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Status", fontWeight = FontWeight.SemiBold)
                 StatusFilter.values().forEach { status ->
@@ -86,7 +90,10 @@ fun TodoScreen(navController: NavController) {
                             .fillMaxWidth()
                             .clickable {
                                 statusFilter = status
-                                scope.launch { sheetState.hide() }
+                                scope.launch {
+                                    sheetState.hide()
+                                    showSheet = false
+                                }
                             },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -94,7 +101,10 @@ fun TodoScreen(navController: NavController) {
                             selected = statusFilter == status,
                             onClick = {
                                 statusFilter = status
-                                scope.launch { sheetState.hide() }
+                                scope.launch {
+                                    sheetState.hide()
+                                    showSheet = false
+                                }
                             }
                         )
                         Text(status.label)
@@ -108,7 +118,10 @@ fun TodoScreen(navController: NavController) {
                             .fillMaxWidth()
                             .clickable {
                                 categoryFilter = if (categoryFilter == cat) null else cat
-                                scope.launch { sheetState.hide() }
+                                scope.launch {
+                                    sheetState.hide()
+                                    showSheet = false
+                                }
                             },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -116,7 +129,10 @@ fun TodoScreen(navController: NavController) {
                             selected = categoryFilter == cat,
                             onClick = {
                                 categoryFilter = if (categoryFilter == cat) null else cat
-                                scope.launch { sheetState.hide() }
+                                scope.launch {
+                                    sheetState.hide()
+                                    showSheet = false
+                                }
                             }
                         )
                         Text(cat)
@@ -124,47 +140,50 @@ fun TodoScreen(navController: NavController) {
                 }
             }
         }
-    ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Todos") },
-                    actions = {
-                        IconButton(onClick = { scope.launch { sheetState.show() } }) {
-                            Icon(Icons.Default.FilterList, contentDescription = "Filter")
-                        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Todos") },
+                actions = {
+                    IconButton(onClick = {
+                        showSheet = true
+                        scope.launch { sheetState.show() }
+                    }) {
+                        Icon(Icons.Default.FilterList, contentDescription = "Filter")
                     }
-                )
-            },
-            snackbarHost = { SnackbarHost(snackbarHostState) }
-        ) { padding ->
-            Box(
+                }
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .pullRefresh(pullRefreshState)
+        ) {
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
-                    .pullRefresh(pullRefreshState)
+                    .padding(16.dp)
             ) {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                ) {
-                    items(filteredTasks) { task ->
-                        TaskCard(
-                            task = task,
-                            onToggle = { viewModel.toggleComplete(task.id) },
-                            onClick = { navController.navigate("task/${task.id}") }
-                        )
-                    }
+                items(filteredTasks) { task ->
+                    TaskCard(
+                        task = task,
+                        onToggle = { viewModel.toggleComplete(task.id) },
+                        onClick = { navController.navigate("task/${task.id}") }
+                    )
                 }
-                PullRefreshIndicator(
-                    refreshing = isLoading,
-                    state = pullRefreshState,
-                    modifier = Modifier.align(Alignment.TopCenter)
-                )
-                if (isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
+            }
+            PullRefreshIndicator(
+                refreshing = isLoading,
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }
     }
@@ -194,12 +213,12 @@ private fun TaskCard(task: TaskEntity, onToggle: () -> Unit, onClick: () -> Unit
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     task.title,
-                    style = MaterialTheme.typography.subtitle1,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
                 if (!task.description.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(task.description, style = MaterialTheme.typography.body2)
+                    Text(task.description, style = MaterialTheme.typography.bodyMedium)
                 }
             }
             Checkbox(
@@ -216,4 +235,3 @@ private fun String.toColor(): Color =
     } catch (_: Exception) {
         Color.Gray
     }
-

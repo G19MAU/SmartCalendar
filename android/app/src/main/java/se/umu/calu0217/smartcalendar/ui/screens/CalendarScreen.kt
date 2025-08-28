@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -96,14 +96,14 @@ fun CalendarScreen() {
 
             Text(
                 text = "Agenda for $selectedDate",
-                style = MaterialTheme.typography.h6,
+                style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
             LazyColumn(modifier = Modifier.padding(16.dp)) {
                 items(selectedActivities) { activity ->
                     Text(
                         text = "${activity.startDate.toLocalTime()} - ${activity.title}",
-                        style = MaterialTheme.typography.body1,
+                        style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(vertical = 4.dp)
                     )
                 }
@@ -188,13 +188,13 @@ private fun DayCell(
             .aspectRatio(1f)
             .padding(2.dp)
             .border(1.dp, Color.LightGray)
-            .background(if (isToday) MaterialTheme.colors.primary.copy(alpha = 0.3f) else Color.Transparent)
+            .background(if (isToday) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f) else Color.Transparent)
             .clickable { onClick(date) },
         contentAlignment = Alignment.TopEnd
     ) {
         Text(
             text = date.dayOfMonth.toString(),
-            style = MaterialTheme.typography.body2,
+            style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(4.dp),
             fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
         )
@@ -204,7 +204,7 @@ private fun DayCell(
                 modifier = Modifier
                     .size(6.dp)
                     .align(Alignment.BottomCenter)
-                    .background(MaterialTheme.colors.secondary, CircleShape)
+                    .background(MaterialTheme.colorScheme.secondary, CircleShape)
             )
         }
     }
@@ -223,7 +223,7 @@ private fun DayTimeline(day: LocalDate, activities: List<ActivityEntity>, modifi
                 )
                 Column {
                     hourActivities.forEach { activity ->
-                        Text(activity.title, style = MaterialTheme.typography.caption)
+                        Text(activity.title, style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }

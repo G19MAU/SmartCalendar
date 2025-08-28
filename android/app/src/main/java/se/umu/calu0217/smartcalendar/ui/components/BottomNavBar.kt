@@ -1,14 +1,15 @@
 package se.umu.calu0217.smartcalendar.ui.components
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.BottomAppBar
-import androidx.compose.material.FabPosition
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavController
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarToday
@@ -16,14 +17,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ViewAgenda
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.compose.foundation.layout.Row
 
-private data class BottomNavItem(val route: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val label: String)
+private data class BottomNavItem(val route: String, val icon: ImageVector, val label: String)
 
 @Composable
 fun BottomNavBar(
@@ -40,25 +35,14 @@ fun BottomNavBar(
 
     Scaffold(
         bottomBar = {
-            BottomAppBar(cutoutShape = androidx.compose.foundation.shape.CircleShape) {
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    items.forEach { item ->
-                        IconButton(
-                            onClick = { navController.navigate(item.route) },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(
-                                    imageVector = item.icon,
-                                    contentDescription = item.label
-                                )
-                                Text(
-                                    text = item.label,
-                                    fontSize = 10.sp
-                                )
-                            }
-                        }
-                    }
+            NavigationBar {
+                items.forEach { item ->
+                    NavigationBarItem(
+                        selected = false,
+                        onClick = { navController.navigate(item.route) },
+                        icon = { Icon(imageVector = item.icon, contentDescription = item.label) },
+                        label = { Text(item.label) }
+                    )
                 }
             }
         },
@@ -68,8 +52,6 @@ fun BottomNavBar(
             }
         },
         floatingActionButtonPosition = FabPosition.Center,
-        isFloatingActionButtonDocked = true,
         content = content
     )
 }
-

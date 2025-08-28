@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -54,13 +54,13 @@ fun TaskDetailScreen(navController: NavController, taskId: Int) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(task.title, style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+        Text(task.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         task.description?.let { Text(it) }
         Text("Due: $due")
         task.location?.let { loc ->
             Text(
                 text = "Location: $loc",
-                color = MaterialTheme.colors.primary,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable {
                     val uri = Uri.parse("geo:$loc?q=$loc")
                     val intent = Intent(Intent.ACTION_VIEW, uri)
