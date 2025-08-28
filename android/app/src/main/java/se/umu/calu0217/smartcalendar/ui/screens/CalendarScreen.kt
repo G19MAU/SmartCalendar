@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -65,7 +66,7 @@ fun CalendarScreen() {
                 .fillMaxWidth()
                 .height(300.dp)
                 .pointerInput(Unit) {
-                    while (true) {
+                    awaitEachGesture {
                         detectTransformGestures { _, _, zoom, _ ->
                             scale = (scale * zoom).coerceIn(0.5f, 2f)
                         }
@@ -73,11 +74,6 @@ fun CalendarScreen() {
                             scale < 0.8f -> ZoomLevel.MONTH
                             scale < 1.5f -> ZoomLevel.WEEK
                             else -> ZoomLevel.DAY
-                        }
-                        scale = when (level) {
-                            ZoomLevel.MONTH -> 0.8f
-                            ZoomLevel.WEEK -> 1f
-                            ZoomLevel.DAY -> 1.5f
                         }
                     }
                 }
