@@ -16,10 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import se.umu.calu0217.smartcalendar.data.db.ActivityEntity
 import se.umu.calu0217.smartcalendar.ui.viewmodels.ActivitiesViewModel
 import java.time.DayOfWeek
@@ -28,9 +27,7 @@ import java.time.LocalDateTime
 
 @Composable
 fun CalendarScreen() {
-    val context = LocalContext.current
-    val activitiesViewModel: ActivitiesViewModel =
-        viewModel(factory = ActivitiesViewModel.provideFactory(context))
+    val activitiesViewModel: ActivitiesViewModel = hiltViewModel()
     val activities by activitiesViewModel.activities.collectAsState()
     val isLoading by activitiesViewModel.isLoading.collectAsState()
     val error by activitiesViewModel.error.collectAsState()
