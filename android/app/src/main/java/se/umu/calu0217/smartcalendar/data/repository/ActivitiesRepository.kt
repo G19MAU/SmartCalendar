@@ -9,7 +9,6 @@ import androidx.work.workDataOf
 import kotlinx.coroutines.flow.Flow
 import retrofit2.HttpException
 import retrofit2.Retrofit
-import se.umu.calu0217.smartcalendar.data.TokenDataStore
 import se.umu.calu0217.smartcalendar.data.ReminderWorker
 import se.umu.calu0217.smartcalendar.data.api.ActivityApi
 import se.umu.calu0217.smartcalendar.data.db.ActivityEntity
@@ -27,7 +26,6 @@ class ActivitiesRepository @Inject constructor(
     @ApplicationContext context: Context,
     retrofit: Retrofit
 ) {
-    private val dataStore = TokenDataStore(context)
     private val db: AppDatabase = Room.databaseBuilder(
         context,
         AppDatabase::class.java,
@@ -43,10 +41,9 @@ class ActivitiesRepository @Inject constructor(
     suspend fun getById(id: Int): ActivityEntity? = db.activityDao().getById(id)
 
     suspend fun refresh(): Result<Unit> {
-        val token = dataStore.getToken() ?: return Result.failure(Exception("No token"))
         return try {
             syncLocalChanges()
-            val remote = api.getOngoing("Bearer $token") + api.getFuture("Bearer $token")
+            val remote = api.getOngoing() + api.getFuture()
             val expanded = remote.flatMap { it.expand() }
             db.activityDao().clear()
             db.activityDao().insertAll(expanded.map { it.toEntity() })
@@ -57,9 +54,8 @@ class ActivitiesRepository @Inject constructor(
     }
 
     suspend fun create(request: CreateActivityRequest) {
-        val token = dataStore.getToken() ?: return
         try {
-            val created = api.create("Bearer $token", request)
+            val created = api.create(request)
             schedule(created)
             refresh()
         } catch (_: Exception) {
@@ -67,9 +63,8 @@ class ActivitiesRepository @Inject constructor(
     }
 
     suspend fun edit(id: Int, request: CreateActivityRequest) {
-        val token = dataStore.getToken() ?: return
         try {
-            val updated = api.edit("Bearer $token", id, request)
+            val updated = api.edit(id, request)
             schedule(updated)
             refresh()
         } catch (_: Exception) {
@@ -91,9 +86,8 @@ class ActivitiesRepository @Inject constructor(
     }
 
     suspend fun delete(id: Int) {
-        val token = dataStore.getToken() ?: return
         try {
-            api.delete("Bearer $token", id)
+            api.delete(id)
             workManager.cancelUniqueWork("activity-$id")
             refresh()
         } catch (_: Exception) {
@@ -171,7 +165,6 @@ class ActivitiesRepository @Inject constructor(
     }
 
     private suspend fun syncLocalChanges() {
-        val token = dataStore.getToken() ?: return
         val dirty = db.activityDao().getDirty()
         for (activity in dirty) {
             try {
@@ -184,12 +177,12 @@ class ActivitiesRepository @Inject constructor(
                     categoryId = 0,
                     recurrence = Recurrence.valueOf(activity.recurrence)
                 )
-                api.edit("Bearer $token", activity.id, request)
-                val fresh = api.getById("Bearer $token", activity.id)
+                api.edit(activity.id, request)
+                val fresh = api.getById(activity.id)
                 db.activityDao().upsert(fresh.toEntity())
             } catch (e: HttpException) {
                 if (e.code() == 409) {
-                    val server = api.getById("Bearer $token", activity.id)
+                    val server = api.getById(activity.id)
                     val localTime = activity.updatedAt ?: ""
                     val serverTime = server.updatedAt ?: ""
                     if (localTime > serverTime) {
@@ -202,8 +195,8 @@ class ActivitiesRepository @Inject constructor(
                             categoryId = 0,
                             recurrence = Recurrence.valueOf(activity.recurrence)
                         )
-                        api.edit("Bearer $token", activity.id, request)
-                        val fresh = api.getById("Bearer $token", activity.id)
+                        api.edit(activity.id, request)
+                        val fresh = api.getById(activity.id)
                         db.activityDao().upsert(fresh.toEntity())
                     } else {
                         db.activityDao().upsert(server.toEntity())

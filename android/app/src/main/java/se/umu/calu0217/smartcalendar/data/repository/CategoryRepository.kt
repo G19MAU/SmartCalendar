@@ -2,12 +2,8 @@ package se.umu.calu0217.smartcalendar.data.repository
 
 import android.content.Context
 import androidx.room.Room
-import com.squareup.moshi.Moshi
 import kotlinx.coroutines.flow.Flow
 import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
-import se.umu.calu0217.smartcalendar.BuildConfig
-import se.umu.calu0217.smartcalendar.data.TokenDataStore
 import se.umu.calu0217.smartcalendar.data.api.CategoryApi
 import se.umu.calu0217.smartcalendar.data.db.AppDatabase
 import se.umu.calu0217.smartcalendar.data.db.CategoryEntity
@@ -16,28 +12,23 @@ import se.umu.calu0217.smartcalendar.domain.CreateCategoryRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-class CategoryRepository @Inject constructor(@ApplicationContext context: Context) {
-    private val dataStore = TokenDataStore(context)
+class CategoryRepository @Inject constructor(
+    @ApplicationContext context: Context,
+    retrofit: Retrofit
+) {
     private val db: AppDatabase = Room.databaseBuilder(
         context,
         AppDatabase::class.java,
         "smartcalendar-db"
     ).fallbackToDestructiveMigration().build()
 
-    private val moshi = Moshi.Builder().build()
-
-    private val api: CategoryApi = Retrofit.Builder()
-        .baseUrl(BuildConfig.BASE_URL)
-        .addConverterFactory(MoshiConverterFactory.create(moshi))
-        .build()
-        .create(CategoryApi::class.java)
+    private val api: CategoryApi = retrofit.create(CategoryApi::class.java)
 
     val categories: Flow<List<CategoryEntity>> = db.categoryDao().getAll()
 
     suspend fun refresh(): Result<Unit> {
-        val token = dataStore.getToken() ?: return Result.failure(Exception("No token"))
         return try {
-            val remote = api.getAll("Bearer $token")
+            val remote = api.getAll()
             db.categoryDao().clear()
             db.categoryDao().insertAll(remote.map { it.toEntity() })
             Result.success(Unit)
@@ -47,9 +38,8 @@ class CategoryRepository @Inject constructor(@ApplicationContext context: Contex
     }
 
     suspend fun create(request: CreateCategoryRequest) {
-        val token = dataStore.getToken() ?: return
         try {
-            api.create("Bearer $token", request)
+            api.create(request)
             refresh()
         } catch (_: Exception) {
         }
