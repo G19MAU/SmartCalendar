@@ -7,14 +7,9 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import kotlinx.coroutines.flow.Flow
-import com.squareup.moshi.Moshi
 import retrofit2.HttpException
 import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
-import se.umu.calu0217.smartcalendar.BuildConfig
-import se.umu.calu0217.smartcalendar.data.TokenDataStore
 import se.umu.calu0217.smartcalendar.data.ReminderWorker
-import se.umu.calu0217.smartcalendar.data.LocalDateTimeAdapter
 import se.umu.calu0217.smartcalendar.data.api.TaskApi
 import se.umu.calu0217.smartcalendar.data.db.AppDatabase
 import se.umu.calu0217.smartcalendar.data.db.TaskEntity
@@ -28,8 +23,10 @@ import java.util.concurrent.TimeUnit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-class TasksRepository @Inject constructor(@ApplicationContext context: Context) {
-    private val dataStore = TokenDataStore(context)
+class TasksRepository @Inject constructor(
+    @ApplicationContext context: Context,
+    retrofit: Retrofit
+) {
     private val db: AppDatabase = Room.databaseBuilder(
         context,
         AppDatabase::class.java,
@@ -38,25 +35,16 @@ class TasksRepository @Inject constructor(@ApplicationContext context: Context) 
 
     private val workManager = WorkManager.getInstance(context)
 
-    private val moshi = Moshi.Builder()
-        .add(LocalDateTimeAdapter())
-        .build()
-
-    private val api: TaskApi = Retrofit.Builder()
-        .baseUrl(BuildConfig.BASE_URL)
-        .addConverterFactory(MoshiConverterFactory.create(moshi))
-        .build()
-        .create(TaskApi::class.java)
+    private val api: TaskApi = retrofit.create(TaskApi::class.java)
 
     val tasks: Flow<List<TaskEntity>> = db.taskDao().getAll()
 
     suspend fun getById(id: Int): TaskEntity? = db.taskDao().getById(id)
 
     suspend fun refresh(): Result<Unit> {
-        val token = dataStore.getToken() ?: return Result.failure(Exception("No token"))
         return try {
             syncLocalChanges()
-            val remote = api.getAll("Bearer $token")
+            val remote = api.getAll()
             db.taskDao().clear()
             db.taskDao().insertAll(remote.map { it.toEntity() })
             Result.success(Unit)
@@ -66,9 +54,8 @@ class TasksRepository @Inject constructor(@ApplicationContext context: Context) 
     }
 
     suspend fun create(request: CreateTaskRequest) {
-        val token = dataStore.getToken() ?: return
         try {
-            val created = api.create("Bearer $token", request)
+            val created = api.create(request)
             schedule(created)
             refresh()
         } catch (_: Exception) {
@@ -76,9 +63,8 @@ class TasksRepository @Inject constructor(@ApplicationContext context: Context) 
     }
 
     suspend fun edit(id: Int, request: CreateTaskRequest) {
-        val token = dataStore.getToken() ?: return
         try {
-            val updated = api.edit("Bearer $token", id, request)
+            val updated = api.edit(id, request)
             schedule(updated)
             refresh()
         } catch (_: Exception) {
@@ -99,9 +85,8 @@ class TasksRepository @Inject constructor(@ApplicationContext context: Context) 
     }
 
     suspend fun delete(id: Int) {
-        val token = dataStore.getToken() ?: return
         try {
-            api.delete("Bearer $token", id)
+            api.delete(id)
             workManager.cancelUniqueWork("task-$id")
             refresh()
         } catch (_: Exception) {
@@ -109,9 +94,8 @@ class TasksRepository @Inject constructor(@ApplicationContext context: Context) 
     }
 
     suspend fun toggleComplete(id: Int) {
-        val token = dataStore.getToken() ?: return
         try {
-            api.toggleComplete("Bearer $token", id)
+            api.toggleComplete(id)
             refresh()
         } catch (_: Exception) {
             val local = db.taskDao().getById(id) ?: return
@@ -127,7 +111,6 @@ class TasksRepository @Inject constructor(@ApplicationContext context: Context) 
     }
 
     private suspend fun syncLocalChanges() {
-        val token = dataStore.getToken() ?: return
         val dirty = db.taskDao().getDirty()
         for (task in dirty) {
             try {
@@ -139,15 +122,15 @@ class TasksRepository @Inject constructor(@ApplicationContext context: Context) 
                     categoryId = 0,
                     recurrence = Recurrence.valueOf(task.recurrence)
                 )
-                var updated = api.edit("Bearer $token", task.id, request)
+                var updated = api.edit(task.id, request)
                 if (updated.completed != task.completed) {
-                    api.toggleComplete("Bearer $token", task.id)
-                    updated = api.getById("Bearer $token", task.id)
+                    api.toggleComplete(task.id)
+                    updated = api.getById(task.id)
                 }
                 db.taskDao().upsert(updated.toEntity())
             } catch (e: HttpException) {
                 if (e.code() == 409) {
-                    val server = api.getById("Bearer $token", task.id)
+                    val server = api.getById(task.id)
                     val localTime = task.updatedAt ?: ""
                     val serverTime = server.updatedAt ?: ""
                     if (localTime > serverTime) {
@@ -159,10 +142,10 @@ class TasksRepository @Inject constructor(@ApplicationContext context: Context) 
                             categoryId = 0,
                             recurrence = Recurrence.valueOf(task.recurrence)
                         )
-                        var fresh = api.edit("Bearer $token", task.id, request)
+                        var fresh = api.edit(task.id, request)
                         if (fresh.completed != task.completed) {
-                            api.toggleComplete("Bearer $token", task.id)
-                            fresh = api.getById("Bearer $token", task.id)
+                            api.toggleComplete(task.id)
+                            fresh = api.getById(task.id)
                         }
                         db.taskDao().upsert(fresh.toEntity())
                     } else {
