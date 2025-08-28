@@ -6,14 +6,17 @@ import com.squareup.moshi.Moshi
 import kotlinx.coroutines.flow.Flow
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import se.umu.calu0217.smartcalendar.BuildConfig
 import se.umu.calu0217.smartcalendar.data.TokenDataStore
 import se.umu.calu0217.smartcalendar.data.api.CategoryApi
 import se.umu.calu0217.smartcalendar.data.db.AppDatabase
 import se.umu.calu0217.smartcalendar.data.db.CategoryEntity
 import se.umu.calu0217.smartcalendar.domain.CategoryDTO
 import se.umu.calu0217.smartcalendar.domain.CreateCategoryRequest
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 
-class CategoryRepository(context: Context) {
+class CategoryRepository @Inject constructor(@ApplicationContext context: Context) {
     private val dataStore = TokenDataStore(context)
     private val db: AppDatabase = Room.databaseBuilder(
         context,
@@ -24,7 +27,7 @@ class CategoryRepository(context: Context) {
     private val moshi = Moshi.Builder().build()
 
     private val api: CategoryApi = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:8080/api/")
+        .baseUrl(BuildConfig.BASE_URL)
         .addConverterFactory(MoshiConverterFactory.create(moshi))
         .build()
         .create(CategoryApi::class.java)

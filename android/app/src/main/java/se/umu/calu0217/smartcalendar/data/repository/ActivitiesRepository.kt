@@ -11,6 +11,7 @@ import com.squareup.moshi.Moshi
 import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import se.umu.calu0217.smartcalendar.BuildConfig
 import se.umu.calu0217.smartcalendar.data.TokenDataStore
 import se.umu.calu0217.smartcalendar.data.ReminderWorker
 import se.umu.calu0217.smartcalendar.data.LocalDateTimeAdapter
@@ -39,7 +40,7 @@ class ActivitiesRepository(context: Context) {
         .build()
 
     private val api: ActivityApi = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:8080/api/")
+        .baseUrl(BuildConfig.BASE_URL)
         .addConverterFactory(MoshiConverterFactory.create(moshi))
         .build()
         .create(ActivityApi::class.java)

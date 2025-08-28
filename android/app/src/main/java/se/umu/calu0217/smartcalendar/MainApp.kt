@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -27,10 +26,10 @@ import se.umu.calu0217.smartcalendar.ui.screens.ActivityDetailScreen
 import se.umu.calu0217.smartcalendar.ui.screens.TaskDetailScreen
 
 @Composable
-fun SmartCalendarApp() {
-    val context = LocalContext.current
-    val authRepository = remember { AuthRepository(context) }
-    val userRepository = remember { UserRepository(context) }
+fun SmartCalendarApp(
+    authRepository: AuthRepository,
+    userRepository: UserRepository
+) {
     val token by authRepository.token.collectAsState(initial = null)
     val navController = rememberNavController()
 
@@ -108,5 +107,7 @@ fun SmartCalendarApp() {
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    SmartCalendarApp()
+    // Preview with dummy repositories
+    val context = androidx.compose.ui.platform.LocalContext.current
+    SmartCalendarApp(AuthRepository(context), UserRepository(context))
 }

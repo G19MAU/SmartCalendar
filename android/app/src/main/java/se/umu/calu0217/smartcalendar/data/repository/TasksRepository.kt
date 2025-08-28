@@ -11,6 +11,7 @@ import com.squareup.moshi.Moshi
 import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import se.umu.calu0217.smartcalendar.BuildConfig
 import se.umu.calu0217.smartcalendar.data.TokenDataStore
 import se.umu.calu0217.smartcalendar.data.ReminderWorker
 import se.umu.calu0217.smartcalendar.data.LocalDateTimeAdapter
@@ -24,8 +25,10 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 
-class TasksRepository(context: Context) {
+class TasksRepository @Inject constructor(@ApplicationContext context: Context) {
     private val dataStore = TokenDataStore(context)
     private val db: AppDatabase = Room.databaseBuilder(
         context,
@@ -40,7 +43,7 @@ class TasksRepository(context: Context) {
         .build()
 
     private val api: TaskApi = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:8080/api/")
+        .baseUrl(BuildConfig.BASE_URL)
         .addConverterFactory(MoshiConverterFactory.create(moshi))
         .build()
         .create(TaskApi::class.java)

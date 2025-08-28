@@ -5,6 +5,7 @@ import androidx.room.Room
 import kotlinx.coroutines.flow.Flow
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import se.umu.calu0217.smartcalendar.BuildConfig
 import se.umu.calu0217.smartcalendar.data.TokenDataStore
 import se.umu.calu0217.smartcalendar.data.api.AuthApi
 import se.umu.calu0217.smartcalendar.data.db.AppDatabase
@@ -12,8 +13,10 @@ import se.umu.calu0217.smartcalendar.domain.ChangeEmailRequest
 import se.umu.calu0217.smartcalendar.domain.ChangePasswordRequest
 import se.umu.calu0217.smartcalendar.domain.DeleteAccountRequest
 import se.umu.calu0217.smartcalendar.domain.LoginRequest
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 
-class AuthRepository(context: Context) {
+class AuthRepository @Inject constructor(@ApplicationContext context: Context) {
     private val dataStore = TokenDataStore(context)
     private val db: AppDatabase = Room.databaseBuilder(
         context,
@@ -22,7 +25,7 @@ class AuthRepository(context: Context) {
     ).build()
 
     private val api: AuthApi = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:8080/api/")
+        .baseUrl(BuildConfig.BASE_URL)
         .addConverterFactory(MoshiConverterFactory.create())
         .build()
         .create(AuthApi::class.java)
