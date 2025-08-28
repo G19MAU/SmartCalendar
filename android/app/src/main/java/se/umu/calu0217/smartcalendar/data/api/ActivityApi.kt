@@ -25,7 +25,7 @@ interface ActivityApi {
     suspend fun edit(
         @Path("id") id: Int,
         @Body request: CreateActivityRequest
-    )
+    ): ActivityDTO
 
     @DELETE("activities/delete/{id}")
     suspend fun delete(
