@@ -9,9 +9,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import se.umu.calu0217.smartcalendar.ui.viewmodels.ActivitiesViewModel
@@ -23,8 +24,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun AgendaScreen(navController: NavController) {
     val context = LocalContext.current
-    val activitiesViewModel: ActivitiesViewModel =
-        viewModel(factory = ActivitiesViewModel.provideFactory(context))
+    val activitiesViewModel: ActivitiesViewModel = hiltViewModel()
     val tasksViewModel: TasksViewModel =
         viewModel(factory = TasksViewModel.provideFactory(context))
 
