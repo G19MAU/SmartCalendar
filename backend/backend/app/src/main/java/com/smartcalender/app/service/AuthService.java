@@ -171,7 +171,7 @@ public class AuthService {
 
         User user = new User();
         user.setUsername(request.getUsername());
-        user.setEmail(request.getEmailAddress());
+        user.setEmailAddress(request.getEmailAddress());
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         User savedUser = userRepository.save(user);
@@ -217,7 +217,7 @@ public class AuthService {
             throw new AlreadyExistsException("E-postadressen är redan registrerad.");
         }
 
-        user.setEmail(newEmail);
+        user.setEmailAddress(newEmail);
         user.setEmailVerified(false);
         userRepository.save(user);
 

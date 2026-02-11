@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table (name = "users")
+@Table(name = "users", indexes = {
+    @Index(name = "idx_user_email_verified", columnList = "email_verified")
+})
 public class User {
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
@@ -69,7 +71,7 @@ public class User {
         return emailAddress;
     }
 
-    public void setEmail(String emailAddress) {
+    public void setEmailAddress(String emailAddress) {
         this.emailAddress = emailAddress;
     }
 

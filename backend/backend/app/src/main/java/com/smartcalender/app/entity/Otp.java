@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "otps")
+@Table(name = "otps", indexes = {
+    @Index(name = "idx_otp_expiration", columnList = "expiration")
+})
 public class Otp {
     @Id
     private Long userId;

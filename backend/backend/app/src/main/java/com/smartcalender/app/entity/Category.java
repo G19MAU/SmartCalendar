@@ -3,7 +3,10 @@ package com.smartcalender.app.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "categories")
+@Table(name = "categories", indexes = {
+    @Index(name = "idx_category_user", columnList = "user_id"),
+    @Index(name = "idx_category_user_name", columnList = "user_id, name")
+})
 public class Category {
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
