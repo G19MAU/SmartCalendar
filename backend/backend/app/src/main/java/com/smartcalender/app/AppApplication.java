@@ -14,26 +14,32 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class AppApplication {
 
 	public static void main(String[] args) {
-		// Load .env file with fallback mechanism
 		Dotenv dotenv = null;
 
-		try {
-			dotenv = Dotenv.configure()
-					.directory("./")
-					.load();
-			System.out.println("Loaded .env from current directory");
-		} catch (Exception e) {
+		String[] possiblePaths = {
+			"./backend/backend/app",
+			"./SmartCalendar/backend/backend/app",
+			"./",
+		};
+
+		for (String path : possiblePaths) {
 			try {
 				dotenv = Dotenv.configure()
-						.directory("./backend/backend/app")
+						.directory(path)
 						.load();
-				System.out.println("Loaded .env from backend/backend/app directory");
-			} catch (Exception e2) {
-				dotenv = Dotenv.configure()
-						.ignoreIfMissing()
-						.load();
-				System.out.println("No .env file found, using system environment variables");
+				System.out.println("Loaded .env from: " + path);
+				break;
+			} catch (Exception e) {
+				System.out.println("Failed to load .env from: " + path);
+				System.out.println("Trying next path...");
 			}
+		}
+
+		if (dotenv == null) {
+			dotenv = Dotenv.configure()
+					.ignoreIfMissing()
+					.load();
+			System.out.println("⚠ No .env file found, using system environment variables");
 		}
 
 		if (dotenv != null) {
