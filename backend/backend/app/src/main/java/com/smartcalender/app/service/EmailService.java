@@ -25,46 +25,21 @@ public class EmailService {
     private final TransactionalEmailsApi api;
 
     public EmailService(@Value("${brevo.api.key}") String apiKey) {
-        System.out.println("=================================================");
-        System.out.println("=== EmailService Initialization START ===");
-        System.out.println("=================================================");
-
         this.apiKey = apiKey;
 
-        // Diagnostic logging for API key
-        if (apiKey == null) {
-            System.err.println("❌ ERROR: Brevo API key is NULL!");
-        } else if (apiKey.isEmpty()) {
-            System.err.println("❌ ERROR: Brevo API key is EMPTY!");
-        } else if (apiKey.startsWith("${")) {
-            System.err.println("❌ ERROR: Brevo API key not resolved from properties: " + apiKey);
-        } else {
-            System.out.println("✅ Brevo API key loaded successfully");
-            System.out.println("   - Key length: " + apiKey.length() + " characters");
-            System.out.println("   - Key prefix: " + apiKey.substring(0, Math.min(15, apiKey.length())) + "...");
-            System.out.println("   - Key starts with 'xkeysib-': " + apiKey.startsWith("xkeysib-"));
+        if (apiKey == null || apiKey.isEmpty() || apiKey.startsWith("${")) {
+            throw new IllegalStateException("Brevo API key is not configured properly. Check EMAIL_API_KEY environment variable.");
         }
 
         try {
             ApiClient client = Configuration.getDefaultApiClient();
-            System.out.println("✅ ApiClient created");
-
             client.setApiKey(apiKey);
-            System.out.println("✅ API key set on client");
-
             this.api = new TransactionalEmailsApi(client);
-            System.out.println("✅ TransactionalEmailsApi initialized");
+            System.out.println("✅ EmailService initialized successfully");
         } catch (Exception e) {
-            System.err.println("❌ ERROR during EmailService initialization:");
-            System.err.println("   Error type: " + e.getClass().getName());
-            System.err.println("   Error message: " + e.getMessage());
-            e.printStackTrace();
-            throw e;
+            System.err.println("❌ Failed to initialize EmailService: " + e.getMessage());
+            throw new IllegalStateException("Failed to initialize Brevo email service", e);
         }
-
-        System.out.println("=================================================");
-        System.out.println("=== EmailService Initialization COMPLETE ===");
-        System.out.println("=================================================");
     }
 
 
@@ -77,68 +52,27 @@ public class EmailService {
      * @param otp the one-time password
      */
     public void sendVerificationEmail(String to, String subject, String verificationUrl, String otp) {
-        System.out.println("=================================================");
-        System.out.println("=== Sending Verification Email START ===");
-        System.out.println("=================================================");
-        System.out.println("   To: " + to);
-        System.out.println("   Subject: " + subject);
-        System.out.println("   Template ID: 1");
-        System.out.println("   Verification URL: " + verificationUrl);
-        System.out.println("   OTP: " + otp);
-
         try {
-            System.out.println(">>> Creating SendSmtpEmail object...");
             SendSmtpEmail email = new SendSmtpEmail();
-
-            System.out.println(">>> Setting sender...");
             email.setSender(new SendSmtpEmailSender().name("SmartCalendar Team").email("no-reply@smartcalendar.se"));
-
-            System.out.println(">>> Setting recipient...");
             email.setTo(Collections.singletonList(new SendSmtpEmailTo().email(to)));
-
-            System.out.println(">>> Setting subject...");
             email.setSubject(subject);
-
-            System.out.println(">>> Setting template ID...");
             email.setTemplateId(1L);
 
-            System.out.println(">>> Setting parameters...");
             Map<String, Object> params = new HashMap<>();
             params.put("verificationUrl", verificationUrl);
             params.put("otp", otp);
             email.setParams(params);
-            System.out.println("   Parameters set: " + params.keySet());
 
-            System.out.println(">>> Calling Brevo API sendTransacEmail()...");
             api.sendTransacEmail(email);
-
-            System.out.println("=================================================");
-            System.out.println("✅ Verification email sent successfully!");
-            System.out.println("=================================================");
+            System.out.println("✅ Verification email sent to: " + to);
 
         } catch (ApiException e) {
-            System.err.println("=================================================");
-            System.err.println("❌ VERIFICATION EMAIL SENDING FAILED (ApiException)!");
-            System.err.println("=================================================");
-            System.err.println("Error code: " + e.getCode());
-            System.err.println("Error message: " + e.getMessage());
-            System.err.println("Error response body: " + e.getResponseBody());
-            System.err.println("Error response headers: " + e.getResponseHeaders());
-            System.err.println("Full stack trace:");
-            e.printStackTrace();
-            System.err.println("=================================================");
-
-            throw new RuntimeException("Failed to send verification email: " + e.getMessage(), e);
+            System.err.println("❌ Failed to send verification email to " + to +
+                             " - HTTP " + e.getCode() + ": " + e.getResponseBody());
+            throw new RuntimeException("Failed to send verification email: " + e.getResponseBody(), e);
         } catch (Exception e) {
-            System.err.println("=================================================");
-            System.err.println("❌ VERIFICATION EMAIL SENDING FAILED (General Exception)!");
-            System.err.println("=================================================");
-            System.err.println("Error type: " + e.getClass().getName());
-            System.err.println("Error message: " + e.getMessage());
-            System.err.println("Full stack trace:");
-            e.printStackTrace();
-            System.err.println("=================================================");
-
+            System.err.println("❌ Failed to send verification email to " + to + ": " + e.getMessage());
             throw new RuntimeException("Failed to send verification email: " + e.getMessage(), e);
         }
     }
@@ -151,66 +85,26 @@ public class EmailService {
      * @param resetUrl the password reset URL
      */
     public void sendPasswordResetEmail(String to, String subject, String resetUrl) {
-        System.out.println("=================================================");
-        System.out.println("=== Sending Password Reset Email START ===");
-        System.out.println("=================================================");
-        System.out.println("   To: " + to);
-        System.out.println("   Subject: " + subject);
-        System.out.println("   Template ID: 2");
-        System.out.println("   Reset URL: " + resetUrl);
-
         try {
-            System.out.println(">>> Creating SendSmtpEmail object...");
             SendSmtpEmail email = new SendSmtpEmail();
-
-            System.out.println(">>> Setting sender...");
             email.setSender(new SendSmtpEmailSender().name("SmartCalendar Team").email("no-reply@smartcalendar.se"));
-
-            System.out.println(">>> Setting recipient...");
             email.setTo(Collections.singletonList(new SendSmtpEmailTo().email(to)));
-
-            System.out.println(">>> Setting subject...");
             email.setSubject(subject);
-
-            System.out.println(">>> Setting template ID...");
             email.setTemplateId(2L);
 
-            System.out.println(">>> Setting parameters...");
             Map<String, Object> params = new HashMap<>();
             params.put("resetUrl", resetUrl);
             email.setParams(params);
-            System.out.println("   Parameters set: " + params.keySet());
 
-            System.out.println(">>> Calling Brevo API sendTransacEmail()...");
             api.sendTransacEmail(email);
-
-            System.out.println("=================================================");
-            System.out.println("✅ Password reset email sent successfully!");
-            System.out.println("=================================================");
+            System.out.println("✅ Password reset email sent to: " + to);
 
         } catch (ApiException e) {
-            System.err.println("=================================================");
-            System.err.println("❌ PASSWORD RESET EMAIL SENDING FAILED (ApiException)!");
-            System.err.println("=================================================");
-            System.err.println("Error code: " + e.getCode());
-            System.err.println("Error message: " + e.getMessage());
-            System.err.println("Error response body: " + e.getResponseBody());
-            System.err.println("Error response headers: " + e.getResponseHeaders());
-            System.err.println("Full stack trace:");
-            e.printStackTrace();
-            System.err.println("=================================================");
-
-            throw new RuntimeException("Failed to send password reset email: " + e.getMessage(), e);
+            System.err.println("❌ Failed to send password reset email to " + to +
+                             " - HTTP " + e.getCode() + ": " + e.getResponseBody());
+            throw new RuntimeException("Failed to send password reset email: " + e.getResponseBody(), e);
         } catch (Exception e) {
-            System.err.println("=================================================");
-            System.err.println("❌ PASSWORD RESET EMAIL SENDING FAILED (General Exception)!");
-            System.err.println("=================================================");
-            System.err.println("Error type: " + e.getClass().getName());
-            System.err.println("Error message: " + e.getMessage());
-            System.err.println("Full stack trace:");
-            e.printStackTrace();
-            System.err.println("=================================================");
-
+            System.err.println("❌ Failed to send password reset email to " + to + ": " + e.getMessage());
             throw new RuntimeException("Failed to send password reset email: " + e.getMessage(), e);
         }
     }
