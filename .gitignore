@@ -220,3 +220,17 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/windows,macos,visualstudiocode,intellij+all,java,react
 .vscode/launch.json
 .vscode/settings.json
+### CI/CD ###
+# GitHub Actions artifacts
+.github/workflows/*.log
+# Test reports
+**/target/surefire-reports/
+**/target/failsafe-reports/
+**/target/site/
+# Security reports
+**/dependency-check-report.html
+**/dependency-check-report.xml
+# Build artifacts already in target/
+**/target/*.original
+# Render
+render.lock
