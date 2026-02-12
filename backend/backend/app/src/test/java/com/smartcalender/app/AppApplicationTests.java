@@ -13,7 +13,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 	"spring.datasource.driver-class-name=org.h2.Driver",
 	"spring.jpa.hibernate.ddl-auto=create-drop",
 	"spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
-	"JWT_SECRET=test-secret-key-for-testing-purposes-only-minimum-256-bits",
+	"JWT_SECRET=dGVzdFNlY3JldEtleUZvclRlc3RpbmdQdXJwb3Nlc09ubHlNaW5pbXVtMjU2Qml0c0xvbmdLZXk=",
 	"JWT_EXPIRATION=86400000"
 })
 class AppApplicationTests {
