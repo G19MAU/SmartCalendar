@@ -1,6 +1,7 @@
 package com.smartcalender.app.service;
 
 import brevo.ApiClient;
+import brevo.ApiException;
 import brevo.Configuration;
 import brevoApi.TransactionalEmailsApi;
 import brevoModel.SendSmtpEmail;
@@ -115,9 +116,22 @@ public class EmailService {
             System.out.println("✅ Verification email sent successfully!");
             System.out.println("=================================================");
 
+        } catch (ApiException e) {
+            System.err.println("=================================================");
+            System.err.println("❌ VERIFICATION EMAIL SENDING FAILED (ApiException)!");
+            System.err.println("=================================================");
+            System.err.println("Error code: " + e.getCode());
+            System.err.println("Error message: " + e.getMessage());
+            System.err.println("Error response body: " + e.getResponseBody());
+            System.err.println("Error response headers: " + e.getResponseHeaders());
+            System.err.println("Full stack trace:");
+            e.printStackTrace();
+            System.err.println("=================================================");
+
+            throw new RuntimeException("Failed to send verification email: " + e.getMessage(), e);
         } catch (Exception e) {
             System.err.println("=================================================");
-            System.err.println("❌ VERIFICATION EMAIL SENDING FAILED!");
+            System.err.println("❌ VERIFICATION EMAIL SENDING FAILED (General Exception)!");
             System.err.println("=================================================");
             System.err.println("Error type: " + e.getClass().getName());
             System.err.println("Error message: " + e.getMessage());
@@ -174,9 +188,22 @@ public class EmailService {
             System.out.println("✅ Password reset email sent successfully!");
             System.out.println("=================================================");
 
+        } catch (ApiException e) {
+            System.err.println("=================================================");
+            System.err.println("❌ PASSWORD RESET EMAIL SENDING FAILED (ApiException)!");
+            System.err.println("=================================================");
+            System.err.println("Error code: " + e.getCode());
+            System.err.println("Error message: " + e.getMessage());
+            System.err.println("Error response body: " + e.getResponseBody());
+            System.err.println("Error response headers: " + e.getResponseHeaders());
+            System.err.println("Full stack trace:");
+            e.printStackTrace();
+            System.err.println("=================================================");
+
+            throw new RuntimeException("Failed to send password reset email: " + e.getMessage(), e);
         } catch (Exception e) {
             System.err.println("=================================================");
-            System.err.println("❌ PASSWORD RESET EMAIL SENDING FAILED!");
+            System.err.println("❌ PASSWORD RESET EMAIL SENDING FAILED (General Exception)!");
             System.err.println("=================================================");
             System.err.println("Error type: " + e.getClass().getName());
             System.err.println("Error message: " + e.getMessage());
