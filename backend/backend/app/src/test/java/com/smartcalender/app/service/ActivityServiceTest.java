@@ -83,12 +83,13 @@ public class ActivityServiceTest {
         when(userRepository.findByUsername(any()))
                 .thenReturn(Optional.of(mockUser));
 
-        Activity existingActivity = new Activity();
-        existingActivity.setName("Existing Activity");
-        existingActivity.setDate(LocalDate.now());
-        existingActivity.setStartTime(LocalTime.of(10, 30));
-        existingActivity.setEndTime(LocalTime.of(11, 30));
-        existingActivity.setUser(mockUser);
+        Activity existingActivity = mock(Activity.class);
+        when(existingActivity.getId()).thenReturn(1L);
+        when(existingActivity.getName()).thenReturn("Existing Activity");
+        when(existingActivity.getDate()).thenReturn(LocalDate.now());
+        when(existingActivity.getStartTime()).thenReturn(LocalTime.of(10, 30));
+        when(existingActivity.getEndTime()).thenReturn(LocalTime.of(11, 30));
+        when(existingActivity.getUser()).thenReturn(mockUser);
 
         when(activityRepository.findByUser(any()))
                 .thenReturn(List.of(existingActivity));
@@ -96,12 +97,13 @@ public class ActivityServiceTest {
         when(activityRepository.save(any(Activity.class)))
                 .thenAnswer(i -> {
                     Activity a = (Activity) i.getArguments()[0];
-                    Activity savedActivity = new Activity();
-                    savedActivity.setName(a.getName());
-                    savedActivity.setDate(a.getDate());
-                    savedActivity.setStartTime(a.getStartTime());
-                    savedActivity.setEndTime(a.getEndTime());
-                    savedActivity.setUser(a.getUser());
+                    Activity savedActivity = mock(Activity.class);
+                    when(savedActivity.getId()).thenReturn(2L);
+                    when(savedActivity.getName()).thenReturn(a.getName());
+                    when(savedActivity.getDate()).thenReturn(a.getDate());
+                    when(savedActivity.getStartTime()).thenReturn(a.getStartTime());
+                    when(savedActivity.getEndTime()).thenReturn(a.getEndTime());
+                    when(savedActivity.getUser()).thenReturn(a.getUser());
                     return savedActivity;
                 });
 
