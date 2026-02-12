@@ -2,11 +2,22 @@
 
 SmartCalendar är en kalenderapplikation utformad för att hjälpa användare att hantera sina händelser och scheman på ett effektivt sätt.
 
+See english description below.
+
+## 🚀 Live Deployment
+
+- **Frontend App**: [https://www.smartcalendar.se](https://www.smartcalendar.se)
+- **Backend API**: [https://www.api.smartcalendar.se](https://www.api.smartcalendar.se)
+
+---
+
+# Swedish
+
 ## Ladda ner och köra projektet
 
 Versionen av koden som har lämnats för granskning är taggad som `v3.0-review`. För att ladda ner och använda denna version:
 
-1. Gå till projektets GitHub-sida: https://github.com/slidecart/G19SmartCalender.
+1. Gå till projektets GitHub-sida: https://github.com/G19MAU/SmartCalendar.
 2. Klicka på fliken "Releases" eller "Tags" och hitta taggen `v3.0-review`.
 3. Klicka på "Download ZIP" under `v3.0-review` för att ladda ner källkoden som en ZIP-fil.
 4. Extrahera ZIP-filen till en mapp på din dator.
@@ -20,7 +31,7 @@ Versionen av koden som har lämnats för granskning är taggad som `v3.0-review`
 
 Backend är en Spring Boot-applikation byggd med Maven och startas via klassen `AppApplication`. För att köra den krävs:
 
-- Java 17 (eller den version som anges i `pom.xml`).
+- Java 21 (eller den version som anges i `pom.xml`).
 - Maven (installerat på din dator eller via din IDE:s inbyggda stöd).
 
 #### Steg i IntelliJ IDEA
@@ -100,36 +111,132 @@ Frontend är byggd med Create React App, en verktygslåda för React-applikation
 
 6. Frontend startar på port 3000 och öppnas automatiskt i din webbläsare på `http://localhost:3000`.
 
-## Miljövariabler
+## Miljövariabler och Konfiguration
 
-Backend läser in följande variabler från miljön innan start (se `backend/backend/app/src/main/resources/application.properties`):
+### Backend - .env File Configuration
 
-- `DB_HOST`, `DB_PORT`, `DB_NAME`
-- `DB_USER`, `DB_PASSWORD`
-- `EMAIL_API_KEY`
+Backend använder en `.env` fil för att hantera miljövariabler. Filen ligger i `backend/backend/app/.env` och laddas automatiskt vid start.
 
-Dessa måste finnas i din miljö eller sättas via ett startskript för att backend ska fungera.
+**Skapa `.env` filen:**
+
+```bash
+# Navigera till backend-mappen
+cd backend/backend/app
+
+# Skapa .env från exempel-filen (om du inte redan har den)
+cp .env.example .env
+
+# Redigera .env med dina faktiska värden
+nano .env  # eller använd din favorit editor
+```
+
+**Nödvändiga variabler i `.env`:**
+
+```bash
+# Databas Konfigurering (PostgreSQL)
+DB_HOST=localhost                    # Eller din databasserver
+DB_PORT=din databas_port (vanligtvis 5432)
+DB_NAME=smartcalendar
+DB_USER=din_databas_användare
+DB_PASSWORD=ditt_databas_lösenord
+
+# Email Service (Brevo API för e-postverifiering)
+EMAIL_API_KEY=din_brevo_api_nyckel
+
+# JWT Konfigurering (Krav för autentisering)
+JWT_SECRET=din_jwt_secret_nyckel     # Generera med: openssl rand -base64 32
+JWT_EXPIRATION=86400000              # 24 timmar i millisekunder
+```
+
+**Generera en säker JWT-nyckel:**
+
+```bash
+openssl rand -base64 32
+```
+
+**Viktigt:**
+- ✅ `.env` filen är i `.gitignore` och commitas **ALDRIG** till Git
+- ✅ Använd `.env.example` som mall
+- ✅ JWT_SECRET måste vara minst 256 bitar (32+ tecken i base64)
+- ✅ Alla variabler måste sättas för att backend ska fungera
+
+### Frontend - React Environment Variables
 
 Frontend använder env-filer för att veta vilken backend som ska anropas:
 
-- `.env.production` finns i repot och innehåller `REACT_APP_BACKEND_URL` för produktionsservern.
-- `.env.local` (gitignored) behöver du skapa själv och ge innehållet
-  
-  ```
+- **`.env.production`** finns i repot och innehåller `REACT_APP_BACKEND_URL` för produktionsservern
+- **`.env.local`** (gitignored) behöver du skapa själv för lokal utveckling:
+
+  ```bash
+  # frontend/.env.local
   REACT_APP_BACKEND_URL=http://localhost:8080/api/
   ```
+
+**Skapa frontend .env.local:**
+
+```bash
+cd frontend
+echo "REACT_APP_BACKEND_URL=http://localhost:8080/api/" > .env.local
+```
 
 
 ## Viktig information för testare och granskare
 
-Se till att miljövariablerna enligt ovan är satta innan du startar backend. Frontend använder env-filerna `.env.production` respektive `.env.local` enligt beskrivningen i avsnittet *Miljövariabler*.
+### Förberedelser innan start:
+
+1. **Java 21**: Projektet kräver Java 21
+   ```bash
+   # Kontrollera Java-version
+   java -version
+   
+   # Installera Java 21:
+   # Via SDKMAN: sdk install java 21.0.2-open
+   # Via Homebrew: brew install openjdk@21
+   ```
+
+2. **Backend .env fil**: Skapa och konfigurera `backend/backend/app/.env` med alla nödvändiga variabler (se avsnittet *Miljövariabler och Konfiguration* ovan)
+
+3. **Frontend .env.local**: Skapa `frontend/.env.local` för att peka på lokal backend
+
+4. **PostgreSQL databas**: Säkerställ att du har tillgång till en PostgreSQL-databas med rätt credentials
+
+### Snabbstart:
+
+```bash
+# 1. Skapa backend .env
+cd backend/backend/app
+cp .env.example .env
+# Redigera .env med dina värden
+
+# 2. Skapa frontend .env.local
+cd ../../../frontend
+echo "REACT_APP_BACKEND_URL=http://localhost:8080/api/" > .env.local
+
+# 3. Starta backend (i en terminal)
+cd ../backend/backend/app
+./mvnw spring-boot:run
+
+# 4. Starta frontend (i en annan terminal)
+cd ../../../frontend
+npm install
+npm start
+```
 
 ## Ytterligare information
 
+- **Java 21 Required**: Projektet kräver Java 21. Om du har en tidigare version installerat kommer backend inte att starta.
 - **Backend**: Applikationen använder en extern PostgreSQL-databas, vilket kan orsaka problem för externa aktörer som försöker använda funktioner kopplade till datan i databasen.
 - **Frontend**: I dagsläget är funktionaliteten begränsad, men applikationen startar utan problem och visar en grundläggande vy.
 - **Portar**: Se till att portarna 8080 (backend) och 3000 (frontend) är lediga på din dator.
-- **IDE-inställningar**: Om du stöter på problem, kontrollera att din IDE har rätt Java- och Node.js-versioner konfigurerade i inställningarna.
+- **IDE-inställningar**: Om du stöter på problem, kontrollera att din IDE har Java 21 och rätt Node.js-version konfigurerad i inställningarna.
+- **.env Säkerhet**: Committa aldrig `.env` filen till Git. Den innehåller känslig information som databas-lösenord och API-nycklar.
+
+## 📋 CI/CD Pipeline
+
+Projektet använder automatiserad CI/CD med GitHub Actions:
+- ✅ Automatisk testning på varje commit
+- ✅ Automatisk deployment till Render på main-branch
+- ✅ Snabb deployment (~5-7 minuter från commit till live)
 
 ---
 # ENGLISH
@@ -156,8 +263,8 @@ The version of the code submitted for review is tagged `v3.0-review`. To downloa
 
 The backend is a Spring Boot application built with Maven and started via the class `AppApplication`. To run it you need:
 
-- Java 17 (or the version specified in `pom.xml`).
-- Maven (installed on your computer or via your IDE's built-in support).
+- **Java 21** 
+- Maven (installed on your computer or via your IDE's built-in support)
 
 #### Steps in IntelliJ IDEA
 
@@ -229,32 +336,128 @@ The frontend is built with Create React App, a toolkit for React applications th
 
 6. The frontend starts on port 3000 and opens automatically in your browser at `http://localhost:3000`.
 
-## Environment variables
+## Environment Variables and Configuration
 
-The backend reads the following variables from the environment before startup (see `backend/backend/app/src/main/resources/application.properties`):
+### Backend - .env File Configuration
 
-- `DB_HOST`, `DB_PORT`, `DB_NAME`
-- `DB_USER`, `DB_PASSWORD`
-- `EMAIL_API_KEY`
+The backend uses a `.env` file to manage environment variables. The file is located in `backend/backend/app/.env` and is loaded automatically at startup.
 
-These must be present in your environment or provided through a startup script for the backend to function.
+**Create the `.env` file:**
+
+```bash
+# Navigate to backend folder
+cd backend/backend/app
+
+# Create .env from example file (if you don't have it already)
+cp .env.example .env
+
+# Edit .env with your actual values
+nano .env  # or use your favorite editor
+```
+
+**Required variables in `.env`:**
+
+```bash
+# Database Configuration (PostgreSQL)
+DB_HOST=localhost                    # Or your database server
+DB_PORT=your_database_port (usually 5432)
+DB_NAME=smartcalendar
+DB_USER=your_database_username
+DB_PASSWORD=your_database_password
+
+# Email Service (Brevo API for email verification)
+EMAIL_API_KEY=your_brevo_api_key
+
+# JWT Configuration (REQUIRED for authentication)
+JWT_SECRET=your_jwt_secret_key       # Generate with: openssl rand -base64 32
+JWT_EXPIRATION=86400000              # 24 hours in milliseconds
+```
+
+**Generate a secure JWT key:**
+
+```bash
+openssl rand -base64 32
+```
+
+**Important:**
+- ✅ The `.env` file is in `.gitignore` and should **NEVER** be committed to Git
+- ✅ Use `.env.example` as a template for team members
+- ✅ JWT_SECRET must be at least 256 bits (32+ characters in base64)
+- ✅ All variables must be set for the backend to function
+
+### Frontend - React Environment Variables
 
 The frontend uses env files to know which backend to call:
 
-- `.env.production` is included in the repo and contains `REACT_APP_BACKEND_URL` for the production server.
-- `.env.local` (gitignored) must be created by you with the content
+- **`.env.production`** is included in the repo and contains `REACT_APP_BACKEND_URL` for the production server
+- **`.env.local`** (gitignored) must be created by you for local development:
 
-  ```
+  ```bash
+  # frontend/.env.local
   REACT_APP_BACKEND_URL=http://localhost:8080/api/
   ```
 
+**Create frontend .env.local:**
+
+```bash
+cd frontend
+echo "REACT_APP_BACKEND_URL=http://localhost:8080/api/" > .env.local
+```
+
 ## Important information for testers and reviewers
 
-Make sure the environment variables described above are set before you start the backend. The frontend uses the env files `.env.production` and `.env.local` as explained in the *Environment variables* section.
+### Prerequisites before starting:
+
+1. **Java 21**: The project requires Java 21
+   ```bash
+   # Check Java version
+   java -version
+   
+   # Install Java 21:
+   # Via SDKMAN: sdk install java 21.0.2-open
+   # Via Homebrew: brew install openjdk@21
+   ```
+
+2. **Backend .env file**: Create and configure `backend/backend/app/.env` with all required variables (see *Environment Variables and Configuration* section above)
+
+3. **Frontend .env.local**: Create `frontend/.env.local` to point to local backend
+
+4. **PostgreSQL database**: Ensure you have access to a PostgreSQL database with the correct credentials
+
+### Quick start:
+
+```bash
+# 1. Create backend .env
+cd backend/backend/app
+cp .env.example .env
+# Edit .env with your values
+
+# 2. Create frontend .env.local
+cd ../../../frontend
+echo "REACT_APP_BACKEND_URL=http://localhost:8080/api/" > .env.local
+
+# 3. Start backend (in one terminal)
+cd ../backend/backend/app
+./mvnw spring-boot:run
+
+# 4. Start frontend (in another terminal)
+cd ../../../frontend
+npm install
+npm start
+```
 
 ## Additional information
 
+- **Java 21 Required**: The project requires Java 21. If you have an older version installed, the backend will not start.
 - **Backend**: The application uses an external PostgreSQL database, which may cause issues for external parties trying to use features tied to the data in the database.
 - **Frontend**: The functionality is currently limited, but the application starts without problems and shows a basic view.
 - **Ports**: Ensure that ports 8080 (backend) and 3000 (frontend) are free on your computer.
-- **IDE settings**: If you encounter problems, verify that your IDE is configured with the correct versions of Java and Node.js.
+- **IDE settings**: If you encounter problems, verify that your IDE is configured with Java 21 and the correct Node.js version.
+- **.env Security**: Never commit the `.env` file to Git. It contains sensitive information such as database passwords and API keys.
+
+## 📋 CI/CD Pipeline
+
+This project uses automated CI/CD with GitHub Actions:
+- ✅ Automated testing on every commit
+- ✅ Automatic deployment to Render on main branch
+- ✅ Fast deployment (~5-7 minutes from commit to live)

@@ -5,7 +5,10 @@ import jakarta.persistence.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "prt")
+@Table(name = "prt", indexes = {
+    @Index(name = "idx_prt_token", columnList = "token", unique = true),
+    @Index(name = "idx_prt_expiry", columnList = "expiryDate")
+})
 public class PasswordResetToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

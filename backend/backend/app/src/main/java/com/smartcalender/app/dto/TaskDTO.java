@@ -1,6 +1,7 @@
 package com.smartcalender.app.dto;
 
 import com.smartcalender.app.entity.Task;
+import com.smartcalender.app.entity.Recurrence;
 import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDate;
@@ -14,6 +15,7 @@ public class TaskDTO {
     private String location;
     private boolean completed;
     private Long categoryId;
+    private Recurrence recurrence;
 
     public TaskDTO() {}
 
@@ -25,6 +27,7 @@ public class TaskDTO {
         this.location = task.getLocation();
         this.completed = task.isCompleted();
         this.categoryId = task.getCategory() != null ? task.getCategory().getId() : null;
+        this.recurrence = task.getRecurrence();
     }
 
     public Long getId() {
@@ -81,5 +84,13 @@ public class TaskDTO {
 
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
+    }
+
+    public Recurrence getRecurrence() {
+        return recurrence;
+    }
+
+    public void setRecurrence(Recurrence recurrence) {
+        this.recurrence = recurrence;
     }
 }

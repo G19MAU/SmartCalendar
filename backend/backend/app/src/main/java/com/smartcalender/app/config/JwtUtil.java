@@ -5,10 +5,13 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
 import java.security.Key;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,8 +27,25 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // Secure key for signing JWT tokens, generated using HS256 algorithm
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+
+    @Value("${jwt.expiration:86400000}")
+    private long jwtExpiration;
+
+    private Key key;
+
+    /**
+     * Initializes the JWT signing key from the environment variable.
+     * This ensures the key is consistent across application restarts,
+     * preventing token invalidation and maintaining user sessions.
+     */
+    @PostConstruct
+    private void init() {
+        // Decode base64 secret and create signing key
+        byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);
+        this.key = Keys.hmacShaKeyFor(keyBytes);
+    }
 
     /**
      * Generates a JWT token for a user based on their UserDetails.
@@ -42,7 +62,7 @@ public class JwtUtil {
 
     /**
      * Constructs a JWT token with specified claims and subject (username).
-     * This internal method sets the token's issuance and expiration times (defaulting to 1 hour),
+     * This internal method sets the token's issuance and expiration times,
      * signs it with the application's secure key, and ensures time-bound validity for enhanced security.
      *
      * @param claims  additional claims to include in the token (e.g., roles or metadata)
@@ -54,7 +74,7 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hour
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(key)
                 .compact();
     }

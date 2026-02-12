@@ -67,6 +67,13 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- H2 Database for testing -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<!-- JWT Dependencies -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
@@ -104,6 +111,13 @@
 			<groupId>com.brevo</groupId>
 			<artifactId>brevo</artifactId>
 			<version>1.0.0</version>
+		</dependency>
+
+		<!-- Dotenv for .env file support -->
+		<dependency>
+			<groupId>io.github.cdimascio</groupId>
+			<artifactId>dotenv-java</artifactId>
+			<version>3.0.0</version>
 		</dependency>
 
 	</dependencies>

@@ -8,7 +8,12 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "tasks")
+@Table(name = "tasks", indexes = {
+    @Index(name = "idx_task_user_date", columnList = "user_id, date"),
+    @Index(name = "idx_task_user_completed", columnList = "user_id, completed"),
+    @Index(name = "idx_task_category", columnList = "category_id"),
+    @Index(name = "idx_task_date", columnList = "date")
+})
 public class Task {
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
@@ -35,6 +40,9 @@ public class Task {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Enumerated(EnumType.STRING)
+    private Recurrence recurrence = Recurrence.NONE;
 
 
     public Task() {
@@ -119,5 +127,13 @@ public class Task {
 
     public User getUser() {
         return user;
+    }
+
+    public Recurrence getRecurrence() {
+        return recurrence;
+    }
+
+    public void setRecurrence(Recurrence recurrence) {
+        this.recurrence = recurrence;
     }
 }

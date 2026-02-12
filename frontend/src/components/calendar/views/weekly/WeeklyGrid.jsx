@@ -1,6 +1,6 @@
 import {Divider, Table, TableBody, TableCell, TableHead, TableRow, Typography} from "@mui/material";
 import dayjs from "dayjs";
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 
 import WeeklyActivityBox from "./WeeklyActivityBox";
 import {useCalendarContext} from "../../../../context/CalendarContext";
@@ -13,7 +13,61 @@ const WeeklyGrid = forwardRef(({ weekdays= [] }, timeColumnRef) => {
         handleCellClick,
         timeSlots,
         handleActivityClick,
+        createOrUpdateActivity
     } = useCalendarContext();
+
+    const [dragOverKey, setDragOverKey] = useState(null);
+
+    const handleDrop = async (e) => {
+        e.preventDefault();
+        const data = e.dataTransfer.getData('text/plain');
+        const payload = data ? JSON.parse(data) : null;
+        const id = payload?.id;
+        const start = payload?.startTime;
+        const end = payload?.endTime;
+        const date = e.currentTarget.dataset.date;
+        const time = e.currentTarget.dataset.time;
+
+        if (!id || !date || !time) return;
+
+        const activity = filteredActivities.find(a => a.id === id);
+        if (!activity) return;
+
+        const duration = dayjs(`1970-01-01T${end}`).diff(dayjs(`1970-01-01T${start}`), 'minute');
+        const newStart = dayjs(`1970-01-01T${time}`);
+        const newEnd = newStart.add(duration, 'minute');
+
+        try {
+            await createOrUpdateActivity({
+                ...activity,
+                id,
+                date,
+                startTime: newStart.format('HH:mm'),
+                endTime: newEnd.format('HH:mm')
+            }, 'edit');
+        } catch (err) {
+            console.error('Failed to move activity', err);
+        }
+        setDragOverKey(null);
+    };
+
+    const handleDragEnter = (e) => {
+        const key = e.currentTarget.dataset.key;
+        setDragOverKey(key);
+    };
+
+    const handleDragLeave = (e) => {
+        const key = e.currentTarget.dataset.key;
+        if (dragOverKey === key) {
+            setDragOverKey(null);
+        }
+    };
+
+    const formatCellKey = (dateStr, timeStr) => {
+        const date = dayjs(dateStr).format("YYYY-MM-DD");
+        const time = dayjs(`1970-01-01T${timeStr}`).format("HH:mm");
+        return `${date}-${time}`;
+    };
 
     return (
         <Table stickyHeader>
@@ -67,17 +121,21 @@ const WeeklyGrid = forwardRef(({ weekdays= [] }, timeColumnRef) => {
 
 
                         {weekdays.map((day, idx) => {
-                            const isToday = dayjs(day.date).isSame(dayjs(), "day");
                             // Filters and sets every date & time for each
+                            const cellKey = formatCellKey(day.date, time);
+                            const cellDate = dayjs(day.date);
+                            const now = dayjs();
                             const cellStart = dayjs(`1970-01-01T${time}`);
                             const cellEnd = cellStart.add(1, "hour");
-                            const isPast = dayjs(day.date).isBefore(dayjs(), 'day');
+                            const cellHour = cellStart.hour();
+                            const isPast = cellDate.isBefore(now, "day") ||
+                                (cellDate.isSame(now, "day") && cellHour < now.hour());
 
 
                             const hits = filteredActivities.filter((a) => {
                                 const activityDate = dayjs(a.date).format("YYYY-MM-DD");
                                 const start = dayjs(`1970-01-01T${a.startTime}`);
-                                const end = start.add(1, "minute")
+                                const end = start.add(1, "minute");
 
                                 return (
                                     activityDate === day.date && 
@@ -85,17 +143,37 @@ const WeeklyGrid = forwardRef(({ weekdays= [] }, timeColumnRef) => {
                                     start.isBefore(cellEnd)
                                 );
                             });
-                            return(
-                                    <TableCell
-                                        key={`${day.name}-${time}`}
-                                        sx={{
-                                            position:"relative",
-                                            padding:"0",
-                                            cursor: "pointer",
-                                            backgroundColor: isToday ? "grey.200" : (isPast ? 'grey.200' : "inherit"),
-                                            borderLeft: idx > 0 ? "1px solid #ccc" : "none",
-                                            "&:hover": {
-                                                backgroundColor: isToday ? "grey.300" : (isPast ? "grey.300" : "grey.100"),
+
+                            return (
+                                <TableCell
+                                    key={cellKey}
+                                    data-key={cellKey}
+                                    data-date={day.date}
+                                    data-time={time}
+                                    tabIndex={0}
+                                    onDragOver={(e) => {
+                                        e.preventDefault();
+                                        e.dataTransfer.dropEffect = 'move';
+                                    }}
+                                    onDragEnter={handleDragEnter}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={handleDrop}
+                                    sx={{
+                                        pointerEvents: "all",
+                                        position: "relative",
+                                        padding: "0",
+                                        cursor: "pointer",
+                                        borderLeft: idx > 0 ? "1px solid #ccc" : "none",
+
+                                        //Color change on hover bugs
+                                        backgroundColor:
+                                            dragOverKey === cellKey
+                                                ? (isPast ? 'grey.300' : 'grey.100')
+                                                : (isPast ? 'grey.200' : 'inherit'),
+                                        "&:hover": {
+                                                backgroundColor: dragOverKey !== cellKey
+                                                    ? (isPast ? 'grey.300' : 'grey.100')
+                                                    : undefined
                                             },
                                         }}
                                         onClick={() => {

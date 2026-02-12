@@ -50,9 +50,8 @@ public class ActivityService {
         User user = userRepository.findByUsername(currentUser.getUsername())
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        List<ActivityDTO> activities = activityRepository.findAll()
+        List<ActivityDTO> activities = activityRepository.findByUser(user)
                 .stream()
-                .filter(activity -> activity.getUser().getId().equals(user.getId()))
                 .map(activity -> new ActivityDTO(activity, checkForOverlaps(activity, user, activity.getId())))
                 .collect(Collectors.toList());
 
@@ -85,6 +84,7 @@ public class ActivityService {
         activity.setEndTime(request.getEndTime());
         activity.setLocation(request.getLocation());
         activity.setUser(user);
+        activity.setRecurrence(request.getRecurrence());
 
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(request.getCategoryId())
@@ -154,6 +154,9 @@ public class ActivityService {
             activityToEdit.setStartTime(activityDTO.getStartTime());
             activityToEdit.setEndTime(activityDTO.getEndTime());
             activityToEdit.setLocation(activityDTO.getLocation());
+            if (activityDTO.getRecurrence() != null) {
+                activityToEdit.setRecurrence(activityDTO.getRecurrence());
+            }
 
             if (activityDTO.getCategoryId() != null) {
                 Category category = categoryRepository.findById(activityDTO.getCategoryId())

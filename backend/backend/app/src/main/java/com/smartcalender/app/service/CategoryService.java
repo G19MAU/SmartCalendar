@@ -71,7 +71,7 @@ public class CategoryService {
     public void deleteCategory(Long id, UserDetails currentUser) {
         User user = getUser(currentUser);
 
-        Category category = getTask(id, user);
+        Category category = getCategory(id, user);
 
         categoryRepository.delete(category);
     }
@@ -91,7 +91,7 @@ public class CategoryService {
     public CategoryDTO editCategory(Long id, CategoryDTO UpdatedCategory, UserDetails currentUser) {
         User user = getUser(currentUser);
 
-        Category category = getTask(id, user);
+        Category category = getCategory(id, user);
 
         category.setName(UpdatedCategory.getName() != null ? UpdatedCategory.getName() : category.getName());
         category.setColor(UpdatedCategory.getColor() != null ? UpdatedCategory.getColor() : category.getColor());
@@ -127,7 +127,7 @@ public class CategoryService {
     public CategoryDTO getCategoryById(Long categoryId, UserDetails currentUser) {
         User user = getUser(currentUser);
 
-        return new CategoryDTO(getTask(categoryId, user));
+        return new CategoryDTO(getCategory(categoryId, user));
     }
 
     /**
@@ -139,7 +139,7 @@ public class CategoryService {
      * @return the {@code Category} entity if found and associated with the user
      * @throws IllegalArgumentException if the category does not exist or is not associated with the user
      */
-    private Category getTask(Long id, User currentUser) {
+    private Category getCategory(Long id, User currentUser) {
         return categoryRepository.findByIdAndUser(id, currentUser)
                 .orElseThrow(() -> new NotFoundException("Category not found"));
     }

@@ -81,11 +81,13 @@ public class UserService implements UserDetailsService {
                 .filter(activity -> activity.getDate().getMonth() == thisMonth.getMonth())
                 .count();
 
-        int averageHoursPerWeek = (int) activities.stream()
-                .filter(activity -> activity.getDate().isAfter(startOfWeek.minusDays(1)))
-                .count() / 7;
+      long totalMinutesThisWeek = activities.stream()
+              .filter(activity -> activity.getDate().isAfter(startOfWeek.minusDays(1)))
+              .mapToLong(Activity::getDuration)
+              .sum();
+      int averageHoursPerWeek = (int) Math.round(totalMinutesThisWeek / 60.0);
 
-        return new ActivityStatsDTO(totalActivitiesToday, totalActivitiesThisWeek, totalActivitiesThisMonth, averageHoursPerWeek);
+      return new ActivityStatsDTO(totalActivitiesToday, totalActivitiesThisWeek, totalActivitiesThisMonth, averageHoursPerWeek);
   }
 
     public UserDTO getUser(UserDetails currentUser) {
@@ -125,8 +127,11 @@ public class UserService implements UserDetailsService {
         List<Activity> activities = activityRepository.findByUserAndNameContainingIgnoreCase(user, query);
 
         if (tasks.isEmpty() && activities.isEmpty()) {
-            return null;
+            return new SearchDTO(query, new ActivityDTO[0], new TaskDTO[0]);
         }
 
-        return new SearchDTO(query , activities.stream().map(ActivityDTO::new).toArray(ActivityDTO[]::new), tasks.stream().map(TaskDTO::new).toArray(TaskDTO[]::new));}
+        return new SearchDTO(
+                query,
+                activities.stream().map(ActivityDTO::new).toArray(ActivityDTO[]::new),
+                tasks.stream().map(TaskDTO::new).toArray(TaskDTO[]::new));}
 }

@@ -40,9 +40,10 @@ const MonthlyActivityBox = ({ filteredActivities, onClick }) => {
                 }
                 const category = categories?.find(cat => cat.id === activity.categoryId);
                 const tempBackgroundColor = category ? category.color : "#013e87";
+                const alphaTempBackgroundColor = alpha(tempBackgroundColor, 0.3);
                 const combinedDateTime = new Date(`${activity.date}T${activity.endTime}`);
                 const past = combinedDateTime.getTime() < Date.now();
-                const backgroundColor = past ? "grey.300" : tempBackgroundColor;
+                const backgroundColor = past ? "grey.200" : alphaTempBackgroundColor;
 
                 return (
                     <Paper
@@ -50,12 +51,14 @@ const MonthlyActivityBox = ({ filteredActivities, onClick }) => {
                         elevation={1}
                         sx={{
                             p: 0.5,
+                            borderLeft:"5px solid",
+                            borderLeftColor: tempBackgroundColor,
                             backgroundColor,
                             cursor: "pointer",
-                            color: "white",
+                            color: "black",
                             zIndex: 1,
                             "&:hover": {
-                                backgroundColor: alpha("#013e87", 0.9), // 60% opacity
+                                backgroundColor: alpha(tempBackgroundColor, 0.6), // 60% opacity
                             },
                         }}
                         onClick={e => {

@@ -47,7 +47,11 @@ export default function TopBar() {
         toggleCategory,
         resetFilter,
         createCategory,
+        useCategoryDialog
     } = useCategoryContext();
+
+    const { open, handleOpen, handleClose, handleCreate } = useCategoryDialog();
+
 
     const [openCreateCategoryDialog, setOpenCreateCategoryDialog] = useState(false);
     const [filterAnchorEl, setFilterAnchorEl] = useState(null);
@@ -152,9 +156,12 @@ export default function TopBar() {
                                     <ListItemText primary={cat.name} />
                                 </MenuItem>
                             ))}
+
+                            <Divider />
+
                             <MenuItem
                                 onClick={() => {
-                                    setOpenCreateCategoryDialog(true);
+                                    handleOpen();
                                     handleFilterClose();
                                 }}
                             >
@@ -196,13 +203,9 @@ export default function TopBar() {
             </Menu>
 
             <CreateCategoryDialog
-                open={openCreateCategoryDialog}
-                onClose={() => setOpenCreateCategoryDialog(false)}
-                onCreate={async ({ name, color }) => {
-                    const newCat = await createCategory(name, color);
-                    toggleCategory(newCat.id);
-                    setOpenCreateCategoryDialog(false);
-                }}
+                open={open}
+                onClose={handleClose}
+                onCreate={handleCreate}
             />
         </Box>
     );
