@@ -13,8 +13,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 	"spring.datasource.driver-class-name=org.h2.Driver",
 	"spring.jpa.hibernate.ddl-auto=create-drop",
 	"spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
+	// JWT configuration
 	"JWT_SECRET=dGVzdFNlY3JldEtleUZvclRlc3RpbmdQdXJwb3Nlc09ubHlNaW5pbXVtMjU2Qml0c0xvbmdLZXk=",
-	"JWT_EXPIRATION=86400000"
+	"JWT_EXPIRATION=86400000",
+	// Email configuration
+	"EMAIL_API_KEY=test-email-api-key-for-testing"
 })
 class AppApplicationTests {
 
